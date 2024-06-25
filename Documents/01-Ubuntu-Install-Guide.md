@@ -51,7 +51,7 @@ sudo vim /etc/samba/smb.conf
 #### 5.2.1 配置USER_NAME共享目录
 ```bash
 [USER_NAME]
-comment = wnguo share path
+comment = samba share path
 browseable = yes
 path = /home/USER_NAME
 create mask = 0700
