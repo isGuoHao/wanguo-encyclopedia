@@ -24,14 +24,14 @@ static SPI_TEST_find_spi_device(void)
     }
 
     pstDev = bus_find_device_by_of_node(&spi_bus_type, pstDevNode);
-    if (!pstDevNode)
+    if (!pstDev)
     {
         pr_err("bus_find_device_by_of_node failed\n");
         return -ENODEV;
     }
 
     g_pstSpiDev = container_of(pstDev, struct spi_device, dev);
-    if (!pstDevNode)
+    if (!g_pstSpiDev)
     {
         pr_err("find spi_device failed\n");
         return -ENODEV;
@@ -143,14 +143,47 @@ static SPI_TEST_write(unsigned char ucAddr, unsigned char ucData)
 
 static int SPI_TEST_module_init(void)
 {
-    pr_err("SPI_TEST_module_init\n");
+    int iRet = -1;
+    unsigned char ucAddr = 0x11;
+    unsigned char ucReadData = 0xAA;
+    unsigned char ucWriteData = 0x0;
+
+    pr_info("SPI_TEST_module_init\n");
+
+    iRet = SPI_TEST_find_spi_device();
+    if (!iRet)
+    {
+        pr_err("bus_find_device_by_of_node failed\n");
+        return -ENODEV;
+    }
+
+    iRet = SPI_TEST_read(ucAddr, &ucReadData);
+    if (!iRet)
+    {
+        pr_err("bus_find_device_by_of_node failed\n");
+        return -ENODEV;
+    }
+
+    iRet = SPI_TEST_write(ucAddr, &ucWriteData);
+    if (!iRet)
+    {
+        pr_err("bus_find_device_by_of_node failed\n");
+        return -ENODEV;
+    }
+
+    iRet = SPI_TEST_read(ucAddr, &ucReadData);
+    if (!iRet)
+    {
+        pr_err("bus_find_device_by_of_node failed\n");
+        return -ENODEV;
+    }
 
     return 0;
 }
 
 static void SPI_TEST_module_exit(void)
 {
-    pr_err("SPI_TEST_module_exit\n");
+    pr_info("SPI_TEST_module_exit\n");
     return;
 }
 
