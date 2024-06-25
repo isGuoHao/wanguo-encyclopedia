@@ -13,7 +13,7 @@ TARGET := spi-test
 obj-m := ${TARGET}.o
 
 # 模块源文件
-${TARGET}-objs := spi_read_write.o
+${TARGET}-objs := spi_test.o
 
 # 模块编译目标
 all:

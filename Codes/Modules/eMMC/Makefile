@@ -15,7 +15,7 @@ TARGET := spi-test
 obj-m := ${TARGET}.o
 
 # 模块源文件
-${TARGET}-objs := emmc_config.o
+${TARGET}-objs := emmc_test.o
 
 # 模块编译目标
 all:
