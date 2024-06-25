@@ -33,7 +33,7 @@ cd ${HOME}/riscv_oslab
 cd qemu
 ```
 ```bash
-git clone https://github.com/T-head-Semi/qemu.git qemu-master
+git clone https://github.com/XUANTIE-RV/qemu.git qemu-master
 ```
 #### 2.3.2 生成Makefile
 (1) 初始化编译目录
@@ -58,7 +58,7 @@ qemu-system-riscv64 --version
 cd ${HOME}/riscv_oslab/toolchain
 ```
 ```bash
-wget https://github.com/T-head-Semi/xuantie-gnu-toolchain/releases/download/2023.03.21/riscv64-glibc-ubuntu-20.04-nightly-2023.03.21-nightly.tar.gz
+wget https://github.com/XUANTIE-RV/xuantie-gnu-toolchain/releases/download/2023.03.21/riscv64-glibc-ubuntu-20.04-nightly-2023.03.21-nightly.tar.gz
 ```
 #### 2.4.2 解压工具链
 ```bash
