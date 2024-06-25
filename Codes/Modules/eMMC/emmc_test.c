@@ -19,26 +19,26 @@ struct mmc_card *g_pst_mmc_card = NULL;
 static int EMMC_TEST_find_mmc_card(void)
 {
     int iRet = -1;
-	struct device       *pstDev = NULL;
+    struct device       *pstDev = NULL;
     struct device_node  *pstDevNode = NULL;
-	struct mmc_driver	fake_mmc_driver = {
-		.drv = {
-			.name = "fake_emmc_drv",
-		},
-	};
+    struct mmc_driver   fake_mmc_driver = {
+        .drv = {
+            .name = "fake_emmc_drv",
+        },
+    };
 
-	/* 注册伪造的mmc驱动到mmc bus */
-	iRet = mmc_register_driver(&fake_mmc_driver);
+    /* 注册伪造的mmc驱动到mmc bus */
+    iRet = mmc_register_driver(&fake_mmc_driver);
     if (!iRet)
     {
         pr_err("mmc_register_driver failed\n");
         return -ENODEV;
     }
 
-	/* 获取到mmc_bus_type的地址 */
-	g_pst_mmc_bus_type = fake_mmc_driver.drv.bus;
+    /* 获取到mmc_bus_type的地址 */
+    g_pst_mmc_bus_type = fake_mmc_driver.drv.bus;
 
-	/* 查找emmc0节点 */
+    /* 查找emmc0节点 */
     pstDevNode = of_find_node_by_name(NULL, EMMC_TEST_DTS_MMC_NODE_NAME);
     if (!pstDevNode)
     {
@@ -46,7 +46,7 @@ static int EMMC_TEST_find_mmc_card(void)
         return -ENODEV;
     }
 
-	/* 在mmc_bus_type上查找设备地址 */
+    /* 在mmc_bus_type上查找设备地址 */
     pstDev = bus_find_device_by_of_node(g_pst_mmc_bus_type, pstDevNode);
     if (!pstDev)
     {
@@ -54,7 +54,7 @@ static int EMMC_TEST_find_mmc_card(void)
         return -ENODEV;
     }
 
-	/* 根据device地址获取到mmc_card地址 */
+    /* 根据device地址获取到mmc_card地址 */
     g_pst_mmc_card = container_of(pstDev, struct mmc_card, dev);
     if (!g_pst_mmc_card)
     {
@@ -62,6 +62,8 @@ static int EMMC_TEST_find_mmc_card(void)
         return -ENODEV;
     }
 
+    /* 卸载伪造的mmc驱动 */
+    mmc_unregister_driver(&fake_mmc_driver);
     return 0;
 }
 
