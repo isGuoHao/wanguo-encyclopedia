@@ -11,7 +11,7 @@
 struct spi_device *g_pstSpiDev = NULL;
 
 
-static SPI_TEST_find_spi_device(void)
+static int SPI_TEST_find_spi_device(void)
 {
     struct device       *pstDev = NULL;
     struct device_node  *pstDevNode = NULL;
@@ -41,7 +41,7 @@ static SPI_TEST_find_spi_device(void)
 }
 
 
-static SPI_TEST_read(unsigned char ucAddr, unsigned char *pucData)
+static int SPI_TEST_read(unsigned char ucAddr, unsigned char *pucData)
 {
     int iRet = -1;
     unsigned char tx_buf[3];
@@ -91,7 +91,7 @@ static SPI_TEST_read(unsigned char ucAddr, unsigned char *pucData)
 }
 
 
-static SPI_TEST_write(unsigned char ucAddr, unsigned char ucData)
+static int SPI_TEST_write(unsigned char ucAddr, unsigned char ucData)
 {
     int iRet = -1;
     unsigned char tx_buf[3];
@@ -164,7 +164,7 @@ static int SPI_TEST_module_init(void)
         return -ENODEV;
     }
 
-    iRet = SPI_TEST_write(ucAddr, &ucWriteData);
+    iRet = SPI_TEST_write(ucAddr, ucWriteData);
     if (!iRet)
     {
         pr_err("bus_find_device_by_of_node failed\n");
