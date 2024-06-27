@@ -30,7 +30,7 @@ static int SPI_TEST_find_spi_device(void)
         return -ENODEV;
     }
 
-    g_pstSpiDev = container_of(pstDev, struct spi_device, dev);
+    g_pstSpiDev = to_spi_device(pstDev);
     if (!g_pstSpiDev)
     {
         pr_err("find spi_device failed\n");
