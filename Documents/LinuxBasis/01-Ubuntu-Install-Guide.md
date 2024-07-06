@@ -105,7 +105,8 @@ ZSH_THEME="jonathan"
 ```
 #### 6.4.2 开启插件
 ```bash
-plugins=(git 
+plugins=(git
+z
 sudo 
 extract 
 zsh-autosuggestions 
