@@ -61,7 +61,22 @@ sudo apt autoremove
 ```
 
 ## 2. 基于ubuntu:22.04创建容器
-### 2.1 拉取ubuntu:22.04镜像
+### 2.1 修改镜像源，并拉取镜像
+#### 2.1.1 修改镜像源
+```bash
+sudo vim /etc/docker/daemon.json
+```
+添加以下内容
+```bash
+{
+	"registry-mirrors": ["https://h5mci237.mirror.aliyuncs.com"]
+}
+```
+#### 2.1.2 重启docker服务
+```bash
+sudo systemctl daemon-reload && sudo systemctl restart docker
+```
+#### 2.1.3 拉取ubuntu:22.04镜像
 ```bash
 docker pull ubuntu:22.04
 ```
