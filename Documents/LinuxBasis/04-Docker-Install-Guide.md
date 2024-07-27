@@ -2,6 +2,7 @@
 
 ## 1. 安装docker
 ### 1.1 方法1: 脚本自动安装
+如果遇到卡死的情况，可以直接打开链接https://get.docker.com，将其中的内容复制，并保存到脚本docekr_install.sh，然后执行命令 bash docker_install.sh --mirror Aliyun 等待安装完成即可
 ```bash
 curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 ```
