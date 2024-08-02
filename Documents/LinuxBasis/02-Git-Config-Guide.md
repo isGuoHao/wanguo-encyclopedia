@@ -32,7 +32,7 @@ ls ${HOME}/.ssh
 ```
 #### 2.2.2 生成 ssh key
 ```bash
-ssh-keygen -t rsa -C "xxx@gmail.com"
+ssh-keygen -t rsa -C "guohaoprc@163.com"
 ```
 1. 执行上述命令后一直回车即可
 2. 生成完以后再用第二步命令，查看ssh key是否正常生成
