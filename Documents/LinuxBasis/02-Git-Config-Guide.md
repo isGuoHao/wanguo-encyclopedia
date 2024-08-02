@@ -3,11 +3,11 @@
 ## 1. 基础配置
 # 配置用户名
 ```bash
-git config --global user.name xxx
+git config --global user.name wanguo
 ```
 # 配置邮箱
 ```bash
-git config --global user.email "xxx@gmail.com"
+git config --global user.email "guohaoprc@163.com"
 ```
 
 # 屏蔽oh-my-zsh git文件状态扫描，规避进入git目录变卡问题
