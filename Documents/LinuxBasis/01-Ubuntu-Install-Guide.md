@@ -50,15 +50,15 @@ sudo vim /etc/samba/smb.conf
 ```
 #### 5.2.1 配置USER_NAME共享目录
 ```bash
-[USER_NAME]
+[wanguo]
 comment = samba share path
 browseable = yes
-path = /home/USER_NAME
+path = /home/wanguo
 create mask = 0700
 directory mask = 0700
-valid users = USER_NAME
-force user = USER_NAME
-force group = USER_NAME
+valid users = wanguo
+force user = wanguo
+force group = wanguo
 public = yes
 available = yes
 writable = yes
@@ -66,7 +66,7 @@ writable = yes
 ### 5.3 添加samba用户
 执行如下命令，并根据提示设置密码
 ```bash
-smbpasswd -a ${USER}
+smbpasswd -a wanguo
 ```
 ### 5.4 重启smbd服务
 ```bash
