@@ -36,19 +36,19 @@ PermitRootLogin yes
 ```
 ### 4.3 重启sshd服务
 ```bash
-systemctl restart sshd
+sudo systemctl restart sshd
 ```
 
 ## 5. 配置samba
 ### 5.1 安装samba
 ```bash
-apt install -y samba
+sudo apt install -y samba
 ```
 ### 5.2 修改samba配置
 ```bash
 sudo vim /etc/samba/smb.conf
 ```
-#### 5.2.1 配置USER_NAME共享目录
+#### 5.2.1 配置wanguo共享目录
 ```bash
 [wanguo]
 comment = samba share path
@@ -66,11 +66,11 @@ writable = yes
 ### 5.3 添加samba用户
 执行如下命令，并根据提示设置密码
 ```bash
-smbpasswd -a wanguo
+sudo smbpasswd -a wanguo
 ```
 ### 5.4 重启smbd服务
 ```bash
-systemctl restart smbd
+sudo systemctl restart smbd
 ```
 
 ## 6 安装zsh && oh-my-zsh
