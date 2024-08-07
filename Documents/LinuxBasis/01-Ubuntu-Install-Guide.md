@@ -123,7 +123,7 @@ alias grepc='find . -iname "*.c" | xargs grep -rn --color=auto '
 alias greph='find . -iname "*.h" | xargs grep -rn --color=auto '
 ```
 
-## 7 搭建nfs服务器
+## 7. 搭建nfs服务器
 ### 7.1 安装nfs-server
 ```bash
 sudo apt install nfs-kernel-server
@@ -164,5 +164,5 @@ ls -l ${HOME}/nfs/test_file
 ```
 
 
-## 8 搭建tftp服务器
+## 8. 搭建tftp服务器
 待补充
