@@ -5,6 +5,8 @@
 #include <linux/cdev.h>
 #include <linux/fs.h>
 #include <linux/device.h>
+#include <linux/list.h>
+#include <linux/slab.h>
 
 #define CPLD_DEV_NAME "cpld_dev"
 #define CPLD_MAJOR 0 // 动态分配主设备号
@@ -14,20 +16,21 @@ struct cpld_device {
     struct i2c_client *i2c_client;
     int (*read)(u8 reg, u8 *data);
     int (*write)(u8 reg, u8 data);
+    struct list_head list;
 };
 
 struct cpld_driver_data {
-    struct cpld_device *cpld_dev;
     dev_t dev_num;
     struct cdev cdev;
     struct class *class;
     struct device *device;
+    struct list_head devices;
 };
 
 static struct cpld_driver_data *cpld_driver_instance;
 
 // SPI 读写
-static int cpld_spi_read(u8 reg, u8 *data)
+static int cpld_spi_read(struct cpld_device *cpld_dev, u8 reg, u8 *data)
 {
     struct spi_message msg;
     struct spi_transfer xfer[2];
@@ -45,14 +48,14 @@ static int cpld_spi_read(u8 reg, u8 *data)
     xfer[1].len = 1;
     spi_message_add_tail(&xfer[1], &msg);
 
-    if (spi_sync(cpld_driver_instance->cpld_dev->spi_dev, &msg) != 0)
+    if (spi_sync(cpld_dev->spi_dev, &msg) != 0)
         return -EIO;
 
     *data = rx_buf[1];
     return 0;
 }
 
-static int cpld_spi_write(u8 reg, u8 data)
+static int cpld_spi_write(struct cpld_device *cpld_dev, u8 reg, u8 data)
 {
     struct spi_message msg;
     struct spi_transfer xfer;
@@ -65,45 +68,45 @@ static int cpld_spi_write(u8 reg, u8 data)
     xfer.len = 2;
     spi_message_add_tail(&xfer, &msg);
 
-    if (spi_sync(cpld_driver_instance->cpld_dev->spi_dev, &msg) != 0)
+    if (spi_sync(cpld_dev->spi_dev, &msg) != 0)
         return -EIO;
 
     return 0;
 }
 
 // I2C 读写
-static int cpld_i2c_read(u8 reg, u8 *data)
+static int cpld_i2c_read(struct cpld_device *cpld_dev, u8 reg, u8 *data)
 {
     struct i2c_msg msgs[2];
     u8 buf[1] = {reg};
 
-    msgs[0].addr = cpld_driver_instance->cpld_dev->i2c_client->addr;
+    msgs[0].addr = cpld_dev->i2c_client->addr;
     msgs[0].flags = 0; // Write
     msgs[0].len = 1;
     msgs[0].buf = buf;
 
-    msgs[1].addr = cpld_driver_instance->cpld_dev->i2c_client->addr;
+    msgs[1].addr = cpld_dev->i2c_client->addr;
     msgs[1].flags = I2C_M_RD; // Read
     msgs[1].len = 1;
     msgs[1].buf = data;
 
-    if (i2c_transfer(cpld_driver_instance->cpld_dev->i2c_client->adapter, msgs, 2) != 2)
+    if (i2c_transfer(cpld_dev->i2c_client->adapter, msgs, 2) != 2)
         return -EIO;
 
     return 0;
 }
 
-static int cpld_i2c_write(u8 reg, u8 data)
+static int cpld_i2c_write(struct cpld_device *cpld_dev, u8 reg, u8 data)
 {
     struct i2c_msg msg;
     u8 buf[2] = {reg, data};
 
-    msg.addr = cpld_driver_instance->cpld_dev->i2c_client->addr;
+    msg.addr = cpld_dev->i2c_client->addr;
     msg.flags = 0; // Write
     msg.len = 2;
     msg.buf = buf;
 
-    if (i2c_transfer(cpld_driver_instance->cpld_dev->i2c_client->adapter, &msg, 1) != 1)
+    if (i2c_transfer(cpld_dev->i2c_client->adapter, &msg, 1) != 1)
         return -EIO;
 
     return 0;
@@ -112,9 +115,16 @@ static int cpld_i2c_write(u8 reg, u8 data)
 // SPI 探测函数
 static int cpld_spi_probe(struct spi_device *spi)
 {
-    cpld_driver_instance->cpld_dev->spi_dev = spi;
-    cpld_driver_instance->cpld_dev->read = cpld_spi_read;
-    cpld_driver_instance->cpld_dev->write = cpld_spi_write;
+    struct cpld_device *cpld_dev;
+    cpld_dev = kzalloc(sizeof(*cpld_dev), GFP_KERNEL);
+    if (!cpld_dev)
+        return -ENOMEM;
+
+    cpld_dev->spi_dev = spi;
+    cpld_dev->read = cpld_spi_read;
+    cpld_dev->write = cpld_spi_write;
+
+    list_add(&cpld_dev->list, &cpld_driver_instance->devices);
     pr_info("CPLD SPI device probed\n");
     return 0;
 }
@@ -122,7 +132,16 @@ static int cpld_spi_probe(struct spi_device *spi)
 // SPI 移除函数
 static void cpld_spi_remove(struct spi_device *spi)
 {
-    pr_info("CPLD SPI device removed\n");
+    struct cpld_device *cpld_dev, *tmp;
+
+    list_for_each_entry_safe(cpld_dev, tmp, &cpld_driver_instance->devices, list) {
+        if (cpld_dev->spi_dev == spi) {
+            list_del(&cpld_dev->list);
+            kfree(cpld_dev);
+            pr_info("CPLD SPI device removed\n");
+            break;
+        }
+    }
 }
 
 static const struct of_device_id cpld_spi_of_match[] = {
@@ -149,11 +168,18 @@ static struct spi_driver cpld_spi_driver = {
 };
 
 // I2C 探测函数
-static int cpld_i2c_probe(struct i2c_client *client)
+static int cpld_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
-    cpld_driver_instance->cpld_dev->i2c_client = client;
-    cpld_driver_instance->cpld_dev->read = cpld_i2c_read;
-    cpld_driver_instance->cpld_dev->write = cpld_i2c_write;
+    struct cpld_device *cpld_dev;
+    cpld_dev = kzalloc(sizeof(*cpld_dev), GFP_KERNEL);
+    if (!cpld_dev)
+        return -ENOMEM;
+
+    cpld_dev->i2c_client = client;
+    cpld_dev->read = cpld_i2c_read;
+    cpld_dev->write = cpld_i2c_write;
+
+    list_add(&cpld_dev->list, &cpld_driver_instance->devices);
     pr_info("CPLD I2C device probed\n");
     return 0;
 }
@@ -161,7 +187,16 @@ static int cpld_i2c_probe(struct i2c_client *client)
 // I2C 移除函数
 static void cpld_i2c_remove(struct i2c_client *client)
 {
-    pr_info("CPLD I2C device removed\n");
+    struct cpld_device *cpld_dev, *tmp;
+
+    list_for_each_entry_safe(cpld_dev, tmp, &cpld_driver_instance->devices, list) {
+        if (cpld_dev->i2c_client == client) {
+            list_del(&cpld_dev->list);
+            kfree(cpld_dev);
+            pr_info("CPLD I2C device removed\n");
+            break;
+        }
+    }
 }
 
 static const struct of_device_id cpld_i2c_of_match[] = {
@@ -188,7 +223,9 @@ static struct i2c_driver cpld_i2c_driver = {
 
 static ssize_t cpld_read(struct file *filp, char __user *buf, size_t count, loff_t *ppos)
 {
+    struct cpld_device *cpld_dev = filp->private_data;
     u8 reg, data;
+
     if (count != 1) {
         pr_err("Invalid read request size\n");
         return -EINVAL;
@@ -197,7 +234,7 @@ static ssize_t cpld_read(struct file *filp, char __user *buf, size_t count, loff
     if (copy_from_user(&reg, buf, 1))
         return -EFAULT;
 
-    if (cpld_driver_instance->cpld_dev->read(reg, &data) < 0)
+    if (cpld_dev->read(cpld_dev, reg, &data) < 0)
         return -EIO;
 
     if (copy_to_user(buf, &data, 1))
@@ -208,7 +245,9 @@ static ssize_t cpld_read(struct file *filp, char __user *buf, size_t count, loff
 
 static ssize_t cpld_write(struct file *filp, const char __user *buf, size_t count, loff_t *ppos)
 {
+    struct cpld_device *cpld_dev = filp->private_data;
     u8 reg, data;
+
     if (count != 2) {
         pr_err("Invalid write request size\n");
         return -EINVAL;
@@ -220,14 +259,30 @@ static ssize_t cpld_write(struct file *filp, const char __user *buf, size_t coun
     if (copy_from_user(&data, buf + 1, 1))
         return -EFAULT;
 
-    if (cpld_driver_instance->cpld_dev->write(reg, data) < 0)
+    if (cpld_dev->write(cpld_dev, reg, data) < 0)
         return -EIO;
 
     return 2;
 }
 
+static int cpld_open(struct inode *inode, struct file *filp)
+{
+    struct cpld_device *cpld_dev;
+
+    list_for_each_entry(cpld_dev, &cpld_driver_instance->devices, list) {
+        if (iminor(inode) == MINOR(cpld_dev->spi_dev->dev.devt) ||
+            iminor(inode) == MINOR(cpld_dev->i2c_client->dev.devt)) {
+            filp->private_data = cpld_dev;
+            return 0;
+        }
+    }
+
+    return -ENODEV;
+}
+
 static const struct file_operations cpld_fops = {
     .owner = THIS_MODULE,
+    .open = cpld_open,
     .read = cpld_read,
     .write = cpld_write,
 };
@@ -243,18 +298,12 @@ static int __init cpld_init(void)
         return -ENOMEM;
     }
 
-    cpld_driver_instance->cpld_dev = kzalloc(sizeof(*cpld_driver_instance->cpld_dev), GFP_KERNEL);
-    if (!cpld_driver_instance->cpld_dev) {
-        pr_err("Failed to allocate memory for cpld_dev\n");
-        kfree(cpld_driver_instance);
-        return -ENOMEM;
-    }
+    INIT_LIST_HEAD(&cpld_driver_instance->devices);
 
     // 分配设备号
     ret = alloc_chrdev_region(&cpld_driver_instance->dev_num, 0, 1, CPLD_DEV_NAME);
     if (ret < 0) {
         pr_err("Failed to allocate char device region\n");
-        kfree(cpld_driver_instance->cpld_dev);
         kfree(cpld_driver_instance);
         return ret;
     }
@@ -265,7 +314,6 @@ static int __init cpld_init(void)
     ret = cdev_add(&cpld_driver_instance->cdev, cpld_driver_instance->dev_num, 1);
     if (ret < 0) {
         pr_err("Failed to add char device\n");
-        kfree(cpld_driver_instance->cpld_dev);
         kfree(cpld_driver_instance);
         unregister_chrdev_region(cpld_driver_instance->dev_num, 1);
         return ret;
@@ -276,7 +324,6 @@ static int __init cpld_init(void)
     if (IS_ERR(cpld_driver_instance->class)) {
         pr_err("Failed to create class\n");
         cdev_del(&cpld_driver_instance->cdev);
-        kfree(cpld_driver_instance->cpld_dev);
         kfree(cpld_driver_instance);
         unregister_chrdev_region(cpld_driver_instance->dev_num, 1);
         return PTR_ERR(cpld_driver_instance->class);
@@ -287,7 +334,6 @@ static int __init cpld_init(void)
         pr_err("Failed to create device\n");
         class_destroy(cpld_driver_instance->class);
         cdev_del(&cpld_driver_instance->cdev);
-        kfree(cpld_driver_instance->cpld_dev);
         kfree(cpld_driver_instance);
         unregister_chrdev_region(cpld_driver_instance->dev_num, 1);
         return PTR_ERR(cpld_driver_instance->device);
@@ -318,7 +364,11 @@ static void __exit cpld_exit(void)
     unregister_chrdev_region(cpld_driver_instance->dev_num, 1);
 
     // 释放内存
-    kfree(cpld_driver_instance->cpld_dev);
+    struct cpld_device *cpld_dev, *tmp;
+    list_for_each_entry_safe(cpld_dev, tmp, &cpld_driver_instance->devices, list) {
+        list_del(&cpld_dev->list);
+        kfree(cpld_dev);
+    }
     kfree(cpld_driver_instance);
 
     pr_info("CPLD driver exited\n");
