@@ -1,102 +1,117 @@
 #include <linux/module.h>
-#include <linux/kernel.h>
+#include <linux/i3c/master.h>
 #include <linux/i3c/device.h>
-#include <linux/cdev.h>
-#include <linux/fs.h>
-#include <linux/device.h>
-#include <linux/list.h>
 #include <linux/slab.h>
-#include "cpld_core.h"
+#include <linux/mutex.h>
+#include <linux/list.h>
 
-// I3C 读写
-static int cpld_i3c_read(struct cpld_device *cpld_dev, u8 reg, u8 *data)
+#include "cpld_private.h"
+#include "cpld_ioctl.h"
+
+// I3C 操作函数
+static int cpld_i3c_read(union cpld_client client, u8 addr, u8 *value)
 {
-    struct i3c_priv_xfer xfer[2];
-    u8 buf[1] = {reg};
-
-    xfer[0].len = 1;
-    xfer[0].type = I3C_PRIV_XFER_WRITE;
-    xfer[0].data.out = buf;
-
-    xfer[1].len = 1;
-    xfer[1].type = I3C_PRIV_XFER_READ;
-    xfer[1].data.in = data;
-
-    return i3c_device_do_priv_xfers(cpld_dev->i3c_dev, xfer, ARRAY_SIZE(xfer));
-}
-
-static int cpld_i3c_write(struct cpld_device *cpld_dev, u8 reg, u8 data)
-{
+    struct i3c_device *i3cdev = client.i3c;
     struct i3c_priv_xfer xfer;
-    u8 buf[2] = {reg, data};
+    u8 buffer[2]; // 1 byte for address, 1 byte for data
+    int ret;
 
-    xfer.len = 2;
-    xfer.type = I3C_PRIV_XFER_WRITE;
-    xfer.data.out = buf;
+    buffer[0] = addr;
+    xfer.rnw = true;
+    xfer.len = 2; // 1 byte for address, 1 byte for data
+    xfer.data.in = buffer;
 
-    return i3c_device_do_priv_xfers(cpld_dev->i3c_dev, &xfer, 1);
+    ret = i3c_device_do_priv_xfers(i3cdev, &xfer, 1);
+    if (ret < 0) {
+        pr_err("I3C read error: %d\n", ret);
+        return ret;
+    }
+
+    *value = buffer[1]; // Extract the data from the buffer
+
+    return 0;
 }
 
-// I3C 探测函数
-static int cpld_i3c_probe(struct i3c_device *dev)
+static int cpld_i3c_write(union cpld_client client, u8 addr, u8 value)
+{
+    struct i3c_device *i3cdev = client.i3c;
+    struct i3c_priv_xfer xfer;
+    u8 buffer[2]; // 1 byte for address, 1 byte for data
+    int ret;
+
+    buffer[0] = addr;
+    buffer[1] = value;
+    xfer.rnw = false;
+    xfer.len = 2; // 1 byte for address, 1 byte for data
+    xfer.data.out = buffer;
+
+    ret = i3c_device_do_priv_xfers(i3cdev, &xfer, 1);
+    if (ret < 0) {
+        pr_err("I3C write error: %d\n", ret);
+        return ret;
+    }
+
+    return 0;
+}
+
+static const struct cpld_ops cpld_i3c_ops = {
+    .read = cpld_i3c_read,
+    .write = cpld_i3c_write,
+};
+
+static int cpld_i3c_probe(struct i3c_device *i3cdev)
 {
     struct cpld_device *cpld_dev;
+
     cpld_dev = kzalloc(sizeof(*cpld_dev), GFP_KERNEL);
     if (!cpld_dev)
         return -ENOMEM;
 
-    cpld_dev->i3c_dev = dev;
-    cpld_dev->read = cpld_i3c_read;
-    cpld_dev->write = cpld_i3c_write;
+    cpld_dev->device_id = i3cdev->desc->info.dyn_addr;
+    cpld_dev->client.i3c = i3cdev;
+    cpld_dev->ops = &cpld_i3c_ops;
+    cpld_dev->type = CPLD_TYPE_I3C; // 设置为 I3C 类型
 
-    if (cpld_register_device(cpld_dev) < 0) {
-        kfree(cpld_dev);
-        return -ENODEV;
-    }
+    cpld_register_new_device(cpld_dev);
 
-    pr_info("CPLD I3C device probed\n");
+    pr_info("I3C Device %d probed\n", cpld_dev->device_id);
+
     return 0;
 }
 
-// I3C 移除函数
-static void cpld_i3c_remove(struct i3c_device *dev)
+static void cpld_i3c_remove(struct i3c_device *i3cdev)
 {
-    struct cpld_device *cpld_dev, *tmp;
+    struct cpld_device *cpld_dev = dev_get_drvdata(&i3cdev->dev);
 
-    list_for_each_entry_safe(cpld_dev, tmp, &cpld_driver_instance->devices, list) {
-        if (cpld_dev->i3c_dev == dev) {
-            cpld_unregister_device(cpld_dev);
-            pr_info("CPLD I3C device removed\n");
-            break;
-        }
+    if (!cpld_dev) {
+        dev_err(&i3cdev->dev, "Device data is NULL\n");
+        return;
     }
+
+    cpld_unregister_device(cpld_dev);
+
+    kfree(cpld_dev);
+
+    pr_info("I3C Device %d removed\n", i3cdev->desc->info.dyn_addr);
 }
 
-static const struct of_device_id cpld_i3c_of_match[] = {
-    { .compatible = "wanguo,cpld-i3c" },
-    { /* end of list */ }
-};
-MODULE_DEVICE_TABLE(of, cpld_i3c_of_match);
 
-struct i3c_driver cpld_i3c_driver = {
+static struct i3c_driver cpld_i3c_driver = {
     .probe = cpld_i3c_probe,
     .remove = cpld_i3c_remove,
-    .of_match_table = cpld_i3c_of_match,
+    .driver.name = "cpld_i3c",
 };
 
-static int __init cpld_i3c_init(void)
+int cpld_i3c_init(void)
 {
-    return i3c_add_driver(&cpld_i3c_driver);
+    return i3c_driver_register(&cpld_i3c_driver);
 }
 
-static void __exit cpld_i3c_exit(void)
+void cpld_i3c_exit(void)
 {
-    i3c_del_driver(&cpld_i3c_driver);
+    i3c_driver_unregister(&cpld_i3c_driver);
 }
-
-module_init(cpld_i3c_init);
-module_exit(cpld_i3c_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Your Name");
-MODULE_DESCRIPTION("CPLD I3C Driver");
+MODULE_DESCRIPTION("I3C driver for CPLD");

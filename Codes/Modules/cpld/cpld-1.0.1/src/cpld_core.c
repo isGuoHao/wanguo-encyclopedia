@@ -127,6 +127,9 @@ static int cpld_proc_show(struct seq_file *m, void *v) {
             case CPLD_TYPE_I2C:
                 type_str = "I2C";
                 break;
+            case CPLD_TYPE_I3C:
+                type_str = "I3C";
+                break;
             default:
                 type_str = "Unknown";
                 break;
@@ -250,18 +253,26 @@ static int __init cpld_init(void) {
         goto cleanup_spi;
     }
 
+    ret = cpld_i3c_init(); // 初始化 I3C 驱动
+    if (ret) {
+        pr_err("Failed to register I3C driver\n");
+        goto cleanup_i2c;
+    }
+
     // 注册 procfs 文件
     cpld_data.proc_file = proc_create("cpld_devices", 0644, NULL, &cpld_proc_fops);
     if (!cpld_data.proc_file) {
         pr_err("Failed to create proc file\n");
         ret = -ENOMEM;
-        goto cleanup_i2c;
+        goto cleanup_i3c;
     }
 
     pr_info("All drivers registered successfully\n");
 
     return 0;
 
+cleanup_i3c:
+    cpld_i3c_exit();
 cleanup_i2c:
     cpld_i2c_exit();
 cleanup_spi:
@@ -283,6 +294,7 @@ static void __exit cpld_exit(void) {
         remove_proc_entry("cpld_devices", NULL);
     }
 
+    cpld_i3c_exit(); // 卸载 I3C 驱动
     cpld_i2c_exit();
     cpld_spi_exit();
     device_destroy(cpld_data.class, cpld_data.dev);

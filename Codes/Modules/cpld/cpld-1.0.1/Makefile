@@ -17,7 +17,8 @@ obj-m := $(TARGET).o
 
 $(TARGET)-objs := $(SRC_DIR)/cpld_core.o \
                   $(SRC_DIR)/cpld_spi.o \
-                  $(SRC_DIR)/cpld_i2c.o
+                  $(SRC_DIR)/cpld_i2c.o \
+                  $(SRC_DIR)/cpld_i3c.o
 
 # Use relative path for include directory
 ccflags-y := -I$(PWD)/$(INCLUDE_DIR)

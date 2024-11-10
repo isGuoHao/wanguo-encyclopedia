@@ -7,12 +7,14 @@
 
 enum cpld_type {
     CPLD_TYPE_SPI,
-    CPLD_TYPE_I2C
+    CPLD_TYPE_I2C,
+    CPLD_TYPE_I3C
 };
 
 union cpld_client {
     struct spi_device *spi;
     struct i2c_client *i2c;
+    struct i3c_device *i3c;
 };
 
 struct cpld_device {
@@ -37,5 +39,8 @@ void cpld_spi_exit(void);
 
 int  cpld_i2c_init(void);
 void cpld_i2c_exit(void);
+
+int  cpld_i3c_init(void);
+void cpld_i3c_exit(void);
 
 #endif /* _CPLD_PRIVATE_H */
