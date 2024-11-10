@@ -158,8 +158,9 @@ static ssize_t cpld_proc_write(struct file *file, const char __user *buf, size_t
 
     kbuf[count] = '\0';
 
-    ret = sscanf(kbuf, "%d %hhx %hhx %c", &cmd.device_id, &cmd.addr, &cmd.value, &cmd.op);
-    if (ret != 4) {
+    // 解析命令
+    ret = sscanf(kbuf, "%d %c %hhx %hhx", &cmd.device_id, &cmd.op, &cmd.addr, &cmd.value);
+    if (ret < 3 || (ret == 3 && cmd.op == 'w')) {
         pr_err("Invalid input format\n");
         return -EINVAL;
     }
