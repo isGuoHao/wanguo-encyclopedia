@@ -1,0 +1,2 @@
+# 引用子目录中的 Makefile
+obj-m += linux/kernel/
