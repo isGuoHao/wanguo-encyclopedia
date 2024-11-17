@@ -33,7 +33,7 @@ struct osa_proc_fops {
 };
 
 // 定义一个结构体来封装proc文件信息
-struct bsp_proc_info {
+struct pdc_proc_info {
     const char *name;                  // proc 文件名称
     mode_t mode;                       // 文件权限
     struct proc_dir_entry *parent;     // 父目录
@@ -42,7 +42,7 @@ struct bsp_proc_info {
 };
 
 // 定义一个结构体来封装cdev信息
-struct bsp_cdev_info {
+struct pdc_cdev_info {
     struct class *class;               // 设备类
     const char *name;                  // 设备名称
     const struct file_operations *fops;      // 文件操作结构体
@@ -54,16 +54,16 @@ struct bsp_cdev_info {
 
 
 // 创建cdev的接口
-int bsp_create_cdev(struct bsp_cdev_info *info);
+int pdc_create_cdev(struct pdc_cdev_info *info);
 
 // 卸载cdev的接口
-void bsp_unregister_cdev(struct bsp_cdev_info *info);
+void pdc_unregister_cdev(struct pdc_cdev_info *info);
 
 // 创建proc文件的接口
-int bsp_create_proc(struct bsp_proc_info *info);
+int pdc_create_proc(struct pdc_proc_info *info);
 
 // 卸载proc文件的接口
-void bsp_remove_proc(struct bsp_proc_info *info);
+void pdc_remove_proc(struct pdc_proc_info *info);
 
 // 定义一个宏来选择合适的class_create函数
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 3, 0)

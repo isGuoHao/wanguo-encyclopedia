@@ -1,14 +1,14 @@
 /*
  * Copyright (c) XMEDIA. All rights reserved.
  */
-#include "osal.h"
+#include "osa.h"
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/sched.h>
 
-void osal_yield(void)
+void osa_yield(void)
 {
     // yield();
     cond_resched();
 }
-EXPORT_SYMBOL(osal_yield);
+EXPORT_SYMBOL(osa_yield);

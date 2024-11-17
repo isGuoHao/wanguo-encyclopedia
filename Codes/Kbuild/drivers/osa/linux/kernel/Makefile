@@ -3,29 +3,29 @@ TARGET := osa
 obj-m := $(TARGET).o
 
 # 定义要编译的目标模块
-$(TARGET)-objs := 	osal_fileops.o \
-					osal_vmalloc.o \
-					osal_addr.o \
-					osal_init.o \
-					osal_atomic.o \
-					osal_barrier.o \
-					osal_cache.o \
-					osal_debug.o \
-					osal_device.o \
-					osal_interrupt.o \
-					osal_math.o \
-					osal_mutex.o \
-					osal_proc.o \
-					osal_schedule.o \
-					osal_semaphore.o \
-					osal_spinlock.o \
-					osal_string.o \
-					osal_task.o \
-					osal_timer.o \
-					osal_wait.o \
-					osal_workqueue.o \
-					osal_notifier.o \
-					osal_platform.o
+$(TARGET)-objs := 	osa_fileops.o \
+					osa_vmalloc.o \
+					osa_addr.o \
+					osa_init.o \
+					osa_atomic.o \
+					osa_barrier.o \
+					osa_cache.o \
+					osa_debug.o \
+					osa_device.o \
+					osa_interrupt.o \
+					osa_math.o \
+					osa_mutex.o \
+					osa_proc.o \
+					osa_schedule.o \
+					osa_semaphore.o \
+					osa_spinlock.o \
+					osa_string.o \
+					osa_task.o \
+					osa_timer.o \
+					osa_wait.o \
+					osa_workqueue.o \
+					osa_notifier.o \
+					osa_platform.o
 
 $(TARGET)-objs +=   media/base.o \
 					media/media.o

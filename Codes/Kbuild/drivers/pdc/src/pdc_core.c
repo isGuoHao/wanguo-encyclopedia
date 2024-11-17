@@ -16,36 +16,36 @@
 #include <linux/list.h>
 #include <linux/version.h>
 
-#include "bsp.h"
-#include "bsp_osa.h"
+#include "pdc.h"
+#include "pdc_osa.h"
 
-#include "bsp_cpld.h"
+#include "pdc_cpld.h"
 
 // 定义一个私有数据结构体
-struct bsp_private_data {
-    struct class *bsp_class;
-    struct proc_dir_entry *proc_bsp_dir;
+struct pdc_private_data {
+    struct class *pdc_class;
+    struct proc_dir_entry *proc_pdc_dir;
     struct list_head driver_list;           // 保存已经注册的驱动信息
 };
 
 
 
 // 私有数据指针
-static struct bsp_private_data *bsp_private_data_instance;
+static struct pdc_private_data *pdc_private_data_instance;
 
-static struct bsp_driver drivers[] = {
-    { .init = bsp_cpld_init,        .exit = bsp_cpld_exit },
+static struct pdc_driver drivers[] = {
+    { .init = pdc_cpld_init,        .exit = pdc_cpld_exit },
     {}
-    // { .init = bsp_cpld_i2c_init,    .exit = bsp_cpld_i2c_exit },
-    // { .init = bsp_cpld_spi_init,    .exit = bsp_cpld_spi_exit },
-    // { .init = bsp_lcd_init,      .exit = bsp_lcd_exit },
-    // { .init = bsp_mcu_init,      .exit = bsp_mcu_exit },
-    // { .init = bsp_key_init,      .exit = bsp_key_exit },
-    // { .init = bsp_led_init,      .exit = bsp_led_exit },
+    // { .init = pdc_cpld_i2c_init,    .exit = pdc_cpld_i2c_exit },
+    // { .init = pdc_cpld_spi_init,    .exit = pdc_cpld_spi_exit },
+    // { .init = pdc_lcd_init,      .exit = pdc_lcd_exit },
+    // { .init = pdc_mcu_init,      .exit = pdc_mcu_exit },
+    // { .init = pdc_key_init,      .exit = pdc_key_exit },
+    // { .init = pdc_led_init,      .exit = pdc_led_exit },
 };
 
 // 注册驱动
-static int bsp_register_driver(struct bsp_driver *driver) {
+static int pdc_register_driver(struct pdc_driver *driver) {
     int ret;
     if (driver->init){
         ret = driver->init();
@@ -54,15 +54,15 @@ static int bsp_register_driver(struct bsp_driver *driver) {
         }
     }
 
-    list_add_tail(&driver->list, &bsp_private_data_instance->driver_list);
+    list_add_tail(&driver->list, &pdc_private_data_instance->driver_list);
     return 0;
 }
 
 // 注销所有驱动
-static void bsp_unregister_drivers(void) {
-    struct bsp_driver *driver;
+static void pdc_unregister_drivers(void) {
+    struct pdc_driver *driver;
 
-    list_for_each_entry_reverse(driver, &bsp_private_data_instance->driver_list, list) {
+    list_for_each_entry_reverse(driver, &pdc_private_data_instance->driver_list, list) {
         if (driver->exit)
         {
             driver->exit();
@@ -73,44 +73,44 @@ static void bsp_unregister_drivers(void) {
 
 
 // 模块初始化
-static int __init bsp_driver_init(void) {
+static int __init pdc_driver_init(void) {
     int i, ret;
 
     // 分配私有数据结构体
-    bsp_private_data_instance = kzalloc(sizeof(*bsp_private_data_instance), GFP_KERNEL);
-    if (!bsp_private_data_instance) {
-        pr_err("Failed to allocate bsp_private_data_instance\n");
+    pdc_private_data_instance = kzalloc(sizeof(*pdc_private_data_instance), GFP_KERNEL);
+    if (!pdc_private_data_instance) {
+        pr_err("Failed to allocate pdc_private_data_instance\n");
         return -ENOMEM;
     }
 
-    INIT_LIST_HEAD(&bsp_private_data_instance->driver_list);
+    INIT_LIST_HEAD(&pdc_private_data_instance->driver_list);
 
     // 创建设备类
-    bsp_private_data_instance->bsp_class = osa_class_create("bsp");
-    if (IS_ERR(bsp_private_data_instance->bsp_class)) {
+    pdc_private_data_instance->pdc_class = osa_class_create("pdc");
+    if (IS_ERR(pdc_private_data_instance->pdc_class)) {
         pr_err("Failed to create class\n");
-        kfree(bsp_private_data_instance);
-        return PTR_ERR(bsp_private_data_instance->bsp_class);
+        kfree(pdc_private_data_instance);
+        return PTR_ERR(pdc_private_data_instance->pdc_class);
     }
 
     // 创建proc目录
-    bsp_private_data_instance->proc_bsp_dir = proc_mkdir("bsp", NULL);
-    if (!bsp_private_data_instance->proc_bsp_dir) {
+    pdc_private_data_instance->proc_pdc_dir = proc_mkdir("pdc", NULL);
+    if (!pdc_private_data_instance->proc_pdc_dir) {
         pr_err("Failed to create proc directory\n");
-        class_destroy(bsp_private_data_instance->bsp_class);
-        kfree(bsp_private_data_instance);
+        class_destroy(pdc_private_data_instance->pdc_class);
+        kfree(pdc_private_data_instance);
         return -ENOMEM;
     }
 
 
     for (i = 0; i < ARRAY_SIZE(drivers); i++) {
-        ret = bsp_register_driver(&drivers[i]);
+        ret = pdc_register_driver(&drivers[i]);
         if (ret) {
             pr_err("Failed to register driver %d\n", i);
-            bsp_unregister_drivers();
-            proc_remove(bsp_private_data_instance->proc_bsp_dir);
-            class_destroy(bsp_private_data_instance->bsp_class);
-            kfree(bsp_private_data_instance);
+            pdc_unregister_drivers();
+            proc_remove(pdc_private_data_instance->proc_pdc_dir);
+            class_destroy(pdc_private_data_instance->pdc_class);
+            kfree(pdc_private_data_instance);
             return ret;
         }
     }
@@ -120,16 +120,16 @@ static int __init bsp_driver_init(void) {
 }
 
 // 模块退出
-static void __exit bsp_driver_exit(void) {
-    bsp_unregister_drivers();
-    proc_remove(bsp_private_data_instance->proc_bsp_dir);
-    class_destroy(bsp_private_data_instance->bsp_class);
-    kfree(bsp_private_data_instance);
+static void __exit pdc_driver_exit(void) {
+    pdc_unregister_drivers();
+    proc_remove(pdc_private_data_instance->proc_pdc_dir);
+    class_destroy(pdc_private_data_instance->pdc_class);
+    kfree(pdc_private_data_instance);
     pr_info("BSP driver unregistered\n");
 }
 
-module_init(bsp_driver_init);
-module_exit(bsp_driver_exit);
+module_init(pdc_driver_init);
+module_exit(pdc_driver_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("BSP Driver with Class and Proc Support");

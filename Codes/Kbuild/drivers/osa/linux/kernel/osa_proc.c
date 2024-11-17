@@ -11,28 +11,28 @@
 #include <asm/uaccess.h>
 #include <linux/version.h>
 
-#include "osal.h"
+#include "osa.h"
 
 #define OSAL_PROC_DEBUG 0
 
-static struct osal_list_head list;
-static osal_proc_entry_t *proc_entry = NULL;
+static struct osa_list_head list;
+static osa_proc_entry_t *proc_entry = NULL;
 
-osal_proc_entry_t *osal_create_proc(const char *name, osal_proc_entry_t *parent);
-void osal_remove_proc(const char *name, osal_proc_entry_t *parent);
-void osal_remove_proc_root(const char *name, osal_proc_entry_t *parent);
-void osal_proc_init(void);
-void osal_proc_exit(void);
+osa_proc_entry_t *osa_create_proc(const char *name, osa_proc_entry_t *parent);
+void osa_remove_proc(const char *name, osa_proc_entry_t *parent);
+void osa_remove_proc_root(const char *name, osa_proc_entry_t *parent);
+void osa_proc_init(void);
+void osa_proc_exit(void);
 
-static int osal_seq_show(struct seq_file *s, void *p)
+static int osa_seq_show(struct seq_file *s, void *p)
 {
-    osal_proc_entry_t *oldsentry = s->private;
-    osal_proc_entry_t sentry;
+    osa_proc_entry_t *oldsentry = s->private;
+    osa_proc_entry_t sentry;
     if (oldsentry == NULL) {
-        osal_printk("%s - parameter invalid!\n", __FUNCTION__);
+        osa_printk("%s - parameter invalid!\n", __FUNCTION__);
         return -1;
     }
-    memset(&sentry, 0, sizeof(osal_proc_entry_t));
+    memset(&sentry, 0, sizeof(osa_proc_entry_t));
     /* only these two parameters are used */
     sentry.seqfile = s;
     sentry.private = oldsentry->private;
@@ -41,19 +41,19 @@ static int osal_seq_show(struct seq_file *s, void *p)
 }
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 18, 0)
-static ssize_t osal_procwrite(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
+static ssize_t osa_procwrite(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
 {
-    osal_proc_entry_t *sentry = ((struct seq_file *)(file->private_data))->private;
+    osa_proc_entry_t *sentry = ((struct seq_file *)(file->private_data))->private;
     return sentry->write(sentry, (char *)buf, count, (long long *)ppos);
 }
 #else
-static ssize_t osal_procwrite(struct file *file, const char __user *buf,
+static ssize_t osa_procwrite(struct file *file, const char __user *buf,
                               size_t count, loff_t *ppos)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
-    osal_proc_entry_t *item = PDE_DATA(file_inode(file));
+    osa_proc_entry_t *item = PDE_DATA(file_inode(file));
 #else
-    osal_proc_entry_t *item = pde_data(file_inode(file));
+    osa_proc_entry_t *item = pde_data(file_inode(file));
 #endif
 
     if ((item != NULL) && (item->write != NULL)) {
@@ -64,92 +64,92 @@ static ssize_t osal_procwrite(struct file *file, const char __user *buf,
 }
 #endif
 
-static int osal_procopen(struct inode *inode, struct file *file)
+static int osa_procopen(struct inode *inode, struct file *file)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 18, 0)
-    osal_proc_entry_t *sentry = PDE(inode)->data;
+    osa_proc_entry_t *sentry = PDE(inode)->data;
 #elif LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
-    osal_proc_entry_t *item = PDE_DATA(file_inode(file));
+    osa_proc_entry_t *item = PDE_DATA(file_inode(file));
 #else
-    osal_proc_entry_t *sentry = pde_data(inode);
+    osa_proc_entry_t *sentry = pde_data(inode);
 #endif
     if ((sentry != NULL) && (sentry->open != NULL)) {
         sentry->open(sentry);
     }
-    return single_open(file, osal_seq_show, sentry);
+    return single_open(file, osa_seq_show, sentry);
 }
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
-static struct file_operations osal_proc_ops = {
+static struct file_operations osa_proc_ops = {
     .owner = THIS_MODULE,
-    .open = osal_procopen,
+    .open = osa_procopen,
     .read = seq_read,
-    .write = osal_procwrite,
+    .write = osa_procwrite,
     .llseek = seq_lseek,
     .release = single_release
 };
 #else
-struct proc_ops osal_proc_ops = {
-    .proc_open = osal_procopen,
+struct proc_ops osa_proc_ops = {
+    .proc_open = osa_procopen,
     .proc_read = seq_read,
-    .proc_write = osal_procwrite,
+    .proc_write = osa_procwrite,
     .proc_lseek = seq_lseek,
     .proc_release = single_release
 };
 #endif
 
-osal_proc_entry_t *osal_create_proc(const char *name, osal_proc_entry_t *parent)
+osa_proc_entry_t *osa_create_proc(const char *name, osa_proc_entry_t *parent)
 {
     struct proc_dir_entry *entry = NULL;
-    osal_proc_entry_t *sentry = NULL;
+    osa_proc_entry_t *sentry = NULL;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 18, 0)
     if (parent == NULL) {
-        osal_printk("%s - parent is NULL!\n", __FUNCTION__);
+        osa_printk("%s - parent is NULL!\n", __FUNCTION__);
         entry = create_proc_entry(name, 0, NULL);
     } else {
-        osal_printk("%s - parent is not NULL! parent=%pK\n", __FUNCTION__, parent->proc_dir_entry);
+        osa_printk("%s - parent is not NULL! parent=%pK\n", __FUNCTION__, parent->proc_dir_entry);
         entry = create_proc_entry(name, 0, parent->proc_dir_entry);
     }
     if (entry == NULL) {
-        osal_printk("%s - create_proc_entry failed!\n", __FUNCTION__);
+        osa_printk("%s - create_proc_entry failed!\n", __FUNCTION__);
         return NULL;
     }
-    sentry = kmalloc(sizeof(struct osal_proc_dir_entry), GFP_KERNEL);
+    sentry = kmalloc(sizeof(struct osa_proc_dir_entry), GFP_KERNEL);
     if (sentry == NULL) {
         if (parent != NULL) {
             remove_proc_entry(name, parent->proc_dir_entry);
         } else {
             remove_proc_entry(name, NULL);
         }
-        osal_printk("%s - kmalloc failed!\n", __FUNCTION__);
+        osa_printk("%s - kmalloc failed!\n", __FUNCTION__);
         return NULL;
     }
 
-    osal_memset(sentry, 0, sizeof(struct osal_proc_dir_entry));
+    osa_memset(sentry, 0, sizeof(struct osa_proc_dir_entry));
 
-    osal_strncpy(sentry->name, name, sizeof(sentry->name) - 1);
+    osa_strncpy(sentry->name, name, sizeof(sentry->name) - 1);
     sentry->proc_dir_entry = entry;
     sentry->open = NULL;
-    entry->proc_fops = &osal_proc_ops;
+    entry->proc_fops = &osa_proc_ops;
     entry->data = sentry;
 #else
-    sentry = kmalloc(sizeof(struct osal_proc_dir_entry), GFP_KERNEL);
+    sentry = kmalloc(sizeof(struct osa_proc_dir_entry), GFP_KERNEL);
     if (sentry == NULL) {
-        osal_printk("%s - kmalloc failed!\n", __FUNCTION__);
+        osa_printk("%s - kmalloc failed!\n", __FUNCTION__);
         return NULL;
     }
 
-    osal_memset(sentry, 0, sizeof(struct osal_proc_dir_entry));
+    osa_memset(sentry, 0, sizeof(struct osa_proc_dir_entry));
 
-    osal_strncpy(sentry->name, name, sizeof(sentry->name) - 1);
+    osa_strncpy(sentry->name, name, sizeof(sentry->name) - 1);
 
     if (parent == NULL) {
-        entry = proc_create_data(name, 0, NULL, &osal_proc_ops, sentry);
+        entry = proc_create_data(name, 0, NULL, &osa_proc_ops, sentry);
     } else {
-        entry = proc_create_data(name, 0, parent->proc_dir_entry, &osal_proc_ops, sentry);
+        entry = proc_create_data(name, 0, parent->proc_dir_entry, &osa_proc_ops, sentry);
     }
     if (entry == NULL) {
-        osal_printk("%s - create_proc_entry failed!\n", __FUNCTION__);
+        osa_printk("%s - create_proc_entry failed!\n", __FUNCTION__);
         kfree(sentry);
         sentry = NULL;
         return NULL;
@@ -157,16 +157,16 @@ osal_proc_entry_t *osal_create_proc(const char *name, osal_proc_entry_t *parent)
     sentry->proc_dir_entry = entry;
     sentry->open = NULL;
 #endif
-    osal_list_add_tail(&(sentry->node), &list);
+    osa_list_add_tail(&(sentry->node), &list);
     return sentry;
 }
 
-void osal_remove_proc(const char *name, osal_proc_entry_t *parent)
+void osa_remove_proc(const char *name, osa_proc_entry_t *parent)
 {
-    struct osal_proc_dir_entry *sproc = NULL;
+    struct osa_proc_dir_entry *sproc = NULL;
 
     if (name == NULL) {
-        osal_printk("%s - parameter invalid!\n", __FUNCTION__);
+        osa_printk("%s - parameter invalid!\n", __FUNCTION__);
         return;
     }
     if (parent != NULL) {
@@ -174,9 +174,9 @@ void osal_remove_proc(const char *name, osal_proc_entry_t *parent)
     } else {
         remove_proc_entry(name, NULL);
     }
-    osal_list_for_each_entry(sproc, &list, node) {
-        if (osal_strncmp(sproc->name, name, sizeof(sproc->name)) == 0) {
-            osal_list_del(&(sproc->node));
+    osa_list_for_each_entry(sproc, &list, node) {
+        if (osa_strncmp(sproc->name, name, sizeof(sproc->name)) == 0) {
+            osa_list_del(&(sproc->node));
             break;
         }
     }
@@ -185,71 +185,71 @@ void osal_remove_proc(const char *name, osal_proc_entry_t *parent)
     }
 }
 
-osal_proc_entry_t *osal_create_proc_entry(const char *name, osal_proc_entry_t *parent)
+osa_proc_entry_t *osa_create_proc_entry(const char *name, osa_proc_entry_t *parent)
 {
     parent = proc_entry;
 
-    return osal_create_proc(name, parent);
+    return osa_create_proc(name, parent);
 }
-EXPORT_SYMBOL(osal_create_proc_entry);
+EXPORT_SYMBOL(osa_create_proc_entry);
 
-void osal_remove_proc_entry(const char *name, osal_proc_entry_t *parent)
+void osa_remove_proc_entry(const char *name, osa_proc_entry_t *parent)
 {
     parent = proc_entry;
-    osal_remove_proc(name, parent);
+    osa_remove_proc(name, parent);
     return;
 }
-EXPORT_SYMBOL(osal_remove_proc_entry);
+EXPORT_SYMBOL(osa_remove_proc_entry);
 
-osal_proc_entry_t *osal_proc_mkdir(const char *name, osal_proc_entry_t *parent)
+osa_proc_entry_t *osa_proc_mkdir(const char *name, osa_proc_entry_t *parent)
 {
     struct proc_dir_entry *proc = NULL;
-    struct osal_proc_dir_entry *sproc = NULL;
+    struct osa_proc_dir_entry *sproc = NULL;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 18, 0)
     if (parent != NULL) {
         proc = proc_mkdir(name, parent->proc_dir_entry);
-        osal_printk("%s - parent is not NULL!\n", __FUNCTION__);
+        osa_printk("%s - parent is not NULL!\n", __FUNCTION__);
         // proc = create_proc_entry(name, S_IFDIR | S_IRUGO | S_IXUGO, parent->proc_dir_entry);
     } else {
         proc = proc_mkdir(name, NULL);
-        osal_printk("%s - parent is NULL! proc=%pK \n", __FUNCTION__, proc);
+        osa_printk("%s - parent is NULL! proc=%pK \n", __FUNCTION__, proc);
         // proc = create_proc_entry(name, S_IFDIR | S_IRUGO | S_IXUGO, NULL);
     }
     if (proc == NULL) {
-        osal_printk("%s - proc_mkdir failed!\n", __FUNCTION__);
+        osa_printk("%s - proc_mkdir failed!\n", __FUNCTION__);
         return NULL;
     }
-    // osal_memset(proc, 0x00, sizeof(proc));
-    sproc = kmalloc(sizeof(struct osal_proc_dir_entry), GFP_KERNEL);
+    // osa_memset(proc, 0x00, sizeof(proc));
+    sproc = kmalloc(sizeof(struct osa_proc_dir_entry), GFP_KERNEL);
     if (sproc == NULL) {
         if (parent != NULL) {
             remove_proc_entry(name, parent->proc_dir_entry);
         } else {
             remove_proc_entry(name, NULL);
         }
-        osal_printk("%s - kmalloc failed!\n", __FUNCTION__);
+        osa_printk("%s - kmalloc failed!\n", __FUNCTION__);
         return NULL;
     }
 
-    osal_memset(sproc, 0, sizeof(struct osal_proc_dir_entry));
+    osa_memset(sproc, 0, sizeof(struct osa_proc_dir_entry));
 
-    osal_strncpy(sproc->name, name, sizeof(sproc->name) - 1);
+    osa_strncpy(sproc->name, name, sizeof(sproc->name) - 1);
     sproc->proc_dir_entry = proc;
     // sproc->read = NULL;
     // sproc->write = NULL;
     // proc->proc_fops = NULL;
     proc->data = sproc;
 #else
-    sproc = kmalloc(sizeof(struct osal_proc_dir_entry), GFP_KERNEL);
+    sproc = kmalloc(sizeof(struct osa_proc_dir_entry), GFP_KERNEL);
     if (sproc == NULL) {
-        osal_printk("%s - kmalloc failed!\n", __FUNCTION__);
+        osa_printk("%s - kmalloc failed!\n", __FUNCTION__);
         return NULL;
     }
 
-    osal_memset(sproc, 0, sizeof(struct osal_proc_dir_entry));
+    osa_memset(sproc, 0, sizeof(struct osa_proc_dir_entry));
 
-    osal_strncpy(sproc->name, name, sizeof(sproc->name) - 1);
+    osa_strncpy(sproc->name, name, sizeof(sproc->name) - 1);
 
     if (parent != NULL) {
         proc = proc_mkdir_data(name, 0, parent->proc_dir_entry, sproc);
@@ -257,23 +257,23 @@ osal_proc_entry_t *osal_proc_mkdir(const char *name, osal_proc_entry_t *parent)
         proc = proc_mkdir_data(name, 0, NULL, sproc);
     }
     if (proc == NULL) {
-        osal_printk("%s - proc_mkdir failed!\n", __FUNCTION__);
+        osa_printk("%s - proc_mkdir failed!\n", __FUNCTION__);
         kfree(sproc);
         sproc = NULL;
         return NULL;
     }
     sproc->proc_dir_entry = proc;
 #endif
-    osal_list_add_tail(&(sproc->node), &list);
+    osa_list_add_tail(&(sproc->node), &list);
     return sproc;
 }
-EXPORT_SYMBOL(osal_proc_mkdir);
+EXPORT_SYMBOL(osa_proc_mkdir);
 
-void osal_remove_proc_root(const char *name, osal_proc_entry_t *parent)
+void osa_remove_proc_root(const char *name, osa_proc_entry_t *parent)
 {
-    struct osal_proc_dir_entry *sproc = NULL;
+    struct osa_proc_dir_entry *sproc = NULL;
     if (name == NULL) {
-        osal_printk("%s - parameter invalid!\n", __FUNCTION__);
+        osa_printk("%s - parameter invalid!\n", __FUNCTION__);
         return;
     }
     if (parent != NULL) {
@@ -281,9 +281,9 @@ void osal_remove_proc_root(const char *name, osal_proc_entry_t *parent)
     } else {
         remove_proc_entry(name, NULL);
     }
-    osal_list_for_each_entry(sproc, &list, node) {
-        if (osal_strncmp(sproc->name, name, sizeof(sproc->name)) == 0) {
-            osal_list_del(&(sproc->node));
+    osa_list_for_each_entry(sproc, &list, node) {
+        if (osa_strncmp(sproc->name, name, sizeof(sproc->name)) == 0) {
+            osa_list_del(&(sproc->node));
             break;
         }
     }
@@ -292,7 +292,7 @@ void osal_remove_proc_root(const char *name, osal_proc_entry_t *parent)
     }
 }
 
-void osal_seq_printf(osal_proc_entry_t *entry, const char *fmt, ...)
+void osa_seq_printf(osa_proc_entry_t *entry, const char *fmt, ...)
 {
     struct seq_file *s = (struct seq_file *)(entry->seqfile);
     va_list args;
@@ -305,18 +305,18 @@ void osal_seq_printf(osal_proc_entry_t *entry, const char *fmt, ...)
 #endif
     va_end(args);
 }
-EXPORT_SYMBOL(osal_seq_printf);
+EXPORT_SYMBOL(osa_seq_printf);
 
-void osal_proc_init(void)
+void osa_proc_init(void)
 {
     OSAL_INIT_LIST_HEAD(&list);
-    proc_entry = osal_proc_mkdir("umap", OSAL_NULL);
+    proc_entry = osa_proc_mkdir("umap", OSAL_NULL);
     if (proc_entry == OSAL_NULL) {
-        osal_printk("test init, proc mkdir error!\n");
+        osa_printk("test init, proc mkdir error!\n");
     }
 }
-void osal_proc_exit(void)
+void osa_proc_exit(void)
 {
-    osal_remove_proc_root("umap", OSAL_NULL);
+    osa_remove_proc_root("umap", OSAL_NULL);
 }
 

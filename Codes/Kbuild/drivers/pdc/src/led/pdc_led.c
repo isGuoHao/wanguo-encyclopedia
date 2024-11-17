@@ -14,16 +14,16 @@
 #include <linux/proc_fs.h>
 #include <linux/fs.h>
 #include <linux/uaccess.h>
-#include "bsp_led.h"
-#include "bsp.h"
-#include "bsp_osa.h"
+#include "pdc_led.h"
+#include "pdc.h"
+#include "pdc_osa.h"
 
 // 定义设备管理结构体
 struct led_private_data {
     struct list_head device_list;
     struct mutex device_lock;
-    struct bsp_cdev_info *cdev_info;
-    struct bsp_proc_info *proc_info;
+    struct pdc_cdev_info *cdev_info;
+    struct pdc_proc_info *proc_info;
 };
 
 static struct led_private_data led_priv_data;
@@ -127,7 +127,7 @@ static int led_init_private_data(void)
     // 创建字符设备
     led_priv_data.cdev_info->devno = 0;
     led_priv_data.cdev_info->cdev = NULL;
-    iRet = bsp_create_cdev(led_priv_data.cdev_info);
+    iRet = pdc_create_cdev(led_priv_data.cdev_info);
     if (iRet) {
         pr_err("Failed to create cdev for LED\n");
         return -ENOMEM;
@@ -135,10 +135,10 @@ static int led_init_private_data(void)
 
     // 创建proc文件
     led_priv_data.proc_info->proc_file = NULL;
-    iRet = bsp_create_proc(led_priv_data.proc_info);
+    iRet = pdc_create_proc(led_priv_data.proc_info);
     if (iRet) {
         pr_err("Failed to create proc file for LED\n");
-        bsp_unregister_cdev(led_priv_data.cdev_info);
+        pdc_unregister_cdev(led_priv_data.cdev_info);
         return -ENOMEM;
     }
 
@@ -148,8 +148,8 @@ static int led_init_private_data(void)
 // 清理管理器
 static void led_cleanup_private_data(void) {
 
-    bsp_remove_proc(led_priv_data.proc_info);
-    bsp_unregister_cdev(led_priv_data.cdev_info);
+    pdc_remove_proc(led_priv_data.proc_info);
+    pdc_unregister_cdev(led_priv_data.cdev_info);
 
     kfree(led_priv_data.cdev_info->name);
     kfree(led_priv_data.proc_info->name);
@@ -187,7 +187,7 @@ void led_unregister(struct led_device *led_dev) {
 }
 
 // 模块初始化
-int bsp_led_init(void) {
+int pdc_led_init(void) {
     int ret;
 
     ret = led_init_private_data();
@@ -202,7 +202,7 @@ int bsp_led_init(void) {
 }
 
 // 模块退出
-void bsp_led_exit(void) {
+void pdc_led_exit(void) {
     pr_info("LED driver unregistered\n");
     led_cleanup_private_data();
 }

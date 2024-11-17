@@ -34,7 +34,7 @@ struct cma_zone {
     unsigned long block_align;
 };
 
-extern struct osal_list_head mmz_list;
+extern struct osa_list_head mmz_list;
 
 long long max_malloc_size = 0x40000000UL;
 
@@ -44,7 +44,7 @@ static int do_mmb_alloc(mmz_mmb_t *mmb)
     mmz_trace_func();
 
     /* add mmb into zone, sorted */
-    osal_list_for_each_entry(p, &mmb->zone->mmb_list, list) {
+    osa_list_for_each_entry(p, &mmb->zone->mmb_list, list) {
         if (mmb->phys_addr < p->phys_addr) {
             break;
         }
@@ -56,7 +56,7 @@ static int do_mmb_alloc(mmz_mmb_t *mmb)
         }
     }
 
-    osal_list_add(&mmb->list, p->list.prev);
+    osa_list_add(&mmb->list, p->list.prev);
     mmz_trace(1, MMZ_MMB_FMT_S, mmz_mmb_fmt_arg(mmb));
 
     return 0;
@@ -169,7 +169,7 @@ static void __mmb_free(mmz_mmb_t *mmb)
 
     dma_release_from_contiguous(mmz->cma_dev, page, count);
 
-    osal_list_del(&mmb->list);
+    osa_list_del(&mmb->list);
     kfree(mmb);
 }
 

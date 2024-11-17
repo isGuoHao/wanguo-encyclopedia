@@ -1,31 +1,31 @@
 /*
  * Copyright (c) XMEDIA. All rights reserved.
  */
-#include "osal.h"
+#include "osa.h"
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/printk.h>
 #include <linux/interrupt.h>
 
-int osal_request_irq(unsigned int irq, osal_irq_handler_t handler, osal_irq_handler_t thread_fn, const char *name,
+int osa_request_irq(unsigned int irq, osa_irq_handler_t handler, osa_irq_handler_t thread_fn, const char *name,
                      void *dev)
 {
     unsigned long flags = IRQF_SHARED;
 
     return request_threaded_irq(irq, (irq_handler_t)handler, (irq_handler_t)thread_fn, flags, name, dev);
 }
-EXPORT_SYMBOL(osal_request_irq);
-void osal_free_irq(unsigned int irq, void *dev)
+EXPORT_SYMBOL(osa_request_irq);
+void osa_free_irq(unsigned int irq, void *dev)
 {
     free_irq(irq, dev);
 }
-EXPORT_SYMBOL(osal_free_irq);
+EXPORT_SYMBOL(osa_free_irq);
 
-int osal_in_interrupt(void)
+int osa_in_interrupt(void)
 {
     return in_interrupt();
 }
-EXPORT_SYMBOL(osal_in_interrupt);
+EXPORT_SYMBOL(osa_in_interrupt);
 
 #if 0
 #ifdef CONFIG_ARM_GIC
@@ -37,8 +37,8 @@ struct gic_sgi_handle {
                    unsigned int irq_num,
                    struct pt_regs *regs);
 };
-int osal_register_gic_handle(unsigned int index, unsigned int irq,
-    osal_gic_handle_t handle, const char *name, void *dev)
+int osa_register_gic_handle(unsigned int index, unsigned int irq,
+    osa_gic_handle_t handle, const char *name, void *dev)
 {
     extern struct gic_sgi_handle dis_irq_handle[DIS_IRQ_CNT];
 
@@ -52,9 +52,9 @@ int osal_register_gic_handle(unsigned int index, unsigned int irq,
 
     return 0;
 }
-EXPORT_SYMBOL(osal_register_gic_handle);
+EXPORT_SYMBOL(osa_register_gic_handle);
 
-int osal_unregister_gic_handle(unsigned int index, unsigned int irq, void *dev)
+int osa_unregister_gic_handle(unsigned int index, unsigned int irq, void *dev)
 {
     extern struct gic_sgi_handle dis_irq_handle[DIS_IRQ_CNT];
 
@@ -67,6 +67,6 @@ int osal_unregister_gic_handle(unsigned int index, unsigned int irq, void *dev)
 
     return 0;
 }
-EXPORT_SYMBOL(osal_unregister_gic_handle);
+EXPORT_SYMBOL(osa_unregister_gic_handle);
 #endif
 #endif

@@ -21,7 +21,7 @@ struct led_ops {
 
 int led_register(struct led_device *led_dev, const char *name);
 void led_unregister(struct led_device *led_dev);
-int bsp_led_init(void);
-void bsp_led_exit(void);
+int pdc_led_init(void);
+void pdc_led_exit(void);
 
 #endif // _BSP_LED_H_

@@ -5,63 +5,63 @@
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
 
-int osal_platform_driver_register(void *drv);
-void osal_platform_driver_unregister(void *drv);
-void *osal_platform_get_resource_byname(void *dev, unsigned int type,
+int osa_platform_driver_register(void *drv);
+void osa_platform_driver_unregister(void *drv);
+void *osa_platform_get_resource_byname(void *dev, unsigned int type,
                                         const char *name);
-void *osal_platform_get_resource(void *dev, unsigned int type, unsigned int num);
-int osal_platform_get_irq_byname(void *dev, const char *name);
-int osal_platform_get_irq(void *dev, unsigned int num);
+void *osa_platform_get_resource(void *dev, unsigned int type, unsigned int num);
+int osa_platform_get_irq_byname(void *dev, const char *name);
+int osa_platform_get_irq(void *dev, unsigned int num);
 #if 0
-int osal_platform_driver_register(struct platform_driver *drv)
+int osa_platform_driver_register(struct platform_driver *drv)
 {
     return __platform_driver_register(drv, THIS_MODULE);
 }
-void osal_platform_driver_unregister(struct platform_driver *drv)
+void osa_platform_driver_unregister(struct platform_driver *drv)
 {
     return platform_driver_unregister(drv);
 }
-struct resource *osal_platform_get_resource_byname(struct platform_device *dev, unsigned int type, const char *name)
+struct resource *osa_platform_get_resource_byname(struct platform_device *dev, unsigned int type, const char *name)
 {
     return platform_get_resource_byname(dev, type, name);
 }
 
 #else
-int osal_platform_driver_register(void *drv)
+int osa_platform_driver_register(void *drv)
 {
     return __platform_driver_register((struct platform_driver *)drv, THIS_MODULE);
 }
-EXPORT_SYMBOL(osal_platform_driver_register);
+EXPORT_SYMBOL(osa_platform_driver_register);
 
-void osal_platform_driver_unregister(void *drv)
+void osa_platform_driver_unregister(void *drv)
 {
     return platform_driver_unregister((struct platform_driver *)drv);
 }
-EXPORT_SYMBOL(osal_platform_driver_unregister);
+EXPORT_SYMBOL(osa_platform_driver_unregister);
 
-void *osal_platform_get_resource_byname(void *dev, unsigned int type,
+void *osa_platform_get_resource_byname(void *dev, unsigned int type,
                                         const char *name)
 {
     return (void *)platform_get_resource_byname((struct platform_device *)dev, type, name);
 }
-EXPORT_SYMBOL(osal_platform_get_resource_byname);
+EXPORT_SYMBOL(osa_platform_get_resource_byname);
 
-void *osal_platform_get_resource(void *dev, unsigned int type, unsigned int num)
+void *osa_platform_get_resource(void *dev, unsigned int type, unsigned int num)
 {
     return (void *)platform_get_resource((struct platform_device *)dev, type, num);
 }
-EXPORT_SYMBOL(osal_platform_get_resource);
+EXPORT_SYMBOL(osa_platform_get_resource);
 
-int osal_platform_get_irq(void *dev, unsigned int num)
+int osa_platform_get_irq(void *dev, unsigned int num)
 {
     return platform_get_irq((struct platform_device *)dev, num);
 }
-EXPORT_SYMBOL(osal_platform_get_irq);
+EXPORT_SYMBOL(osa_platform_get_irq);
 
-int osal_platform_get_irq_byname(void *dev, const char *name)
+int osa_platform_get_irq_byname(void *dev, const char *name)
 {
     return platform_get_irq_byname((struct platform_device *)dev, name);
 }
-EXPORT_SYMBOL(osal_platform_get_irq_byname);
+EXPORT_SYMBOL(osa_platform_get_irq_byname);
 
 #endif

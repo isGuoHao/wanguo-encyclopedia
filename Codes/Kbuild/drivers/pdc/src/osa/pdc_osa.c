@@ -1,10 +1,10 @@
 #include <linux/version.h>
 
-#include "bsp_osa.h"
+#include "pdc_osa.h"
 
 
 // 创建cdev的接口
-int bsp_create_cdev(struct bsp_cdev_info *info) {
+int pdc_create_cdev(struct pdc_cdev_info *info) {
     struct cdev *cdev;
     int err;
 
@@ -39,7 +39,7 @@ int bsp_create_cdev(struct bsp_cdev_info *info) {
 }
 
 // 卸载cdev的接口
-void bsp_unregister_cdev(struct bsp_cdev_info *info) {
+void pdc_unregister_cdev(struct pdc_cdev_info *info) {
     if (info->cdev) {
         cdev_del(info->cdev);
         unregister_chrdev_region(*info->devno, 1);
@@ -65,7 +65,7 @@ static void osa_to_file_fops(struct file_operations *file_ops, const struct osa_
 }
 
 // 创建proc文件的接口
-int bsp_create_proc(struct bsp_proc_info *info) {
+int pdc_create_proc(struct pdc_proc_info *info) {
     struct proc_dir_entry *entry;
     struct file_operations file_ops;
 
@@ -93,7 +93,7 @@ static void osa_to_proc_fops(struct proc_ops *proc_ops, const struct osa_proc_fo
 }
 
 // 创建proc文件的接口
-int bsp_create_proc(struct bsp_proc_info *info) {
+int pdc_create_proc(struct pdc_proc_info *info) {
     struct proc_dir_entry *entry;
     struct proc_ops proc_ops;
 
@@ -112,7 +112,7 @@ int bsp_create_proc(struct bsp_proc_info *info) {
 
 
 // 卸载proc文件的接口
-void bsp_remove_proc(struct bsp_proc_info *info) {
+void pdc_remove_proc(struct pdc_proc_info *info) {
     if (*info->proc_file) {
         remove_proc_entry(info->name, info->parent);
         *info->proc_file = NULL;

@@ -35,7 +35,7 @@
 #include <linux/time.h>
 #include <linux/dma-mapping.h>
 
-#include "osal.h"
+#include "osa.h"
 #include "allocator.h"
 
 
@@ -50,7 +50,7 @@ int block_number = 0;
 
 int mmz_map_mmz_unregister(mmz_mmz_t *zone);
 
-int mmz_seq_show(struct osal_proc_dir_entry *sfile);
+int mmz_seq_show(struct osa_proc_dir_entry *sfile);
 int __init media_mem_init(void);
 void __exit media_mem_exit(void);
 
@@ -157,7 +157,7 @@ static int _check_mmz(mmz_mmz_t *zone)
         return -1;
     }
 
-    osal_list_for_each_entry(p, &mmz_list, list) {
+    osa_list_for_each_entry(p, &mmz_list, list) {
         unsigned long start, end;
         start = p->phys_start;
         end   = p->phys_start + p->nbytes;
@@ -202,7 +202,7 @@ int mmz_mmz_register(mmz_mmz_t *zone)
 
     OSAL_INIT_LIST_HEAD(&zone->mmb_list);
 
-    osal_list_add(&zone->list, &mmz_list);
+    osa_list_add(&zone->list, &mmz_list);
 
     up(&mmz_lock);
 
@@ -220,7 +220,7 @@ int mmz_mmz_unregister(mmz_mmz_t *zone)
     mmz_trace_func();
 
     down(&mmz_lock);
-    osal_list_for_each_entry(p, &zone->mmb_list, list) {
+    osa_list_for_each_entry(p, &zone->mmb_list, list) {
         printk(KERN_WARNING "MB Lost: " MMZ_MMB_FMT_S "\n",
                 mmz_mmb_fmt_arg(p));
         losts++;
@@ -233,7 +233,7 @@ int mmz_mmz_unregister(mmz_mmz_t *zone)
         return -1;
     }
 
-    osal_list_del(&zone->list);
+    osa_list_del(&zone->list);
     up(&mmz_lock);
 
     return 0;
@@ -469,9 +469,9 @@ EXPORT_SYMBOL(mmz_mmb_free);
 #define MACH_MMB(p, val, member) do {\
     mmz_mmz_t *__mach_mmb_zone__ = NULL; \
     (p) = NULL;\
-    osal_list_for_each_entry(__mach_mmb_zone__, &mmz_list, list) { \
+    osa_list_for_each_entry(__mach_mmb_zone__, &mmz_list, list) { \
         mmz_mmb_t *__mach_mmb__ = NULL;\
-        osal_list_for_each_entry(__mach_mmb__, &__mach_mmb_zone__->mmb_list, list) { \
+        osa_list_for_each_entry(__mach_mmb__, &__mach_mmb_zone__->mmb_list, list) { \
             if (__mach_mmb__->member == (val)) { \
                 (p) = __mach_mmb__; \
                 break;\
@@ -573,9 +573,9 @@ EXPORT_SYMBOL(usr_virt_to_phys);
 #define MACH_MMB_2(p, val, member, Outoffset) do {\
     mmz_mmz_t *__mach_mmb_zone__ = NULL; \
     (p) = NULL;\
-    osal_list_for_each_entry(__mach_mmb_zone__, &mmz_list, list) { \
+    osa_list_for_each_entry(__mach_mmb_zone__, &mmz_list, list) { \
         mmz_mmb_t *__mach_mmb__ = NULL;\
-        osal_list_for_each_entry(__mach_mmb__, &__mach_mmb_zone__->mmb_list, list) { \
+        osa_list_for_each_entry(__mach_mmb__, &__mach_mmb_zone__->mmb_list, list) { \
             if ((__mach_mmb__->member <= (val)) && ((__mach_mmb__->length + __mach_mmb__->member) > (val))) { \
                 (p) = __mach_mmb__; \
                 Outoffset = val - __mach_mmb__->member;\
@@ -654,7 +654,7 @@ int mmz_map_mmz_unregister(mmz_mmz_t *zone)
     mmz_trace_func();
 
     down(&mmz_lock);
-    osal_list_for_each_entry(p, &zone->mmb_list, list) {
+    osa_list_for_each_entry(p, &zone->mmb_list, list) {
         printk(KERN_WARNING "MB Lost: " MMZ_MMB_FMT_S "\n",
                 mmz_mmb_fmt_arg(p));
         losts++;
@@ -667,7 +667,7 @@ int mmz_map_mmz_unregister(mmz_mmz_t *zone)
         return -1;
     }
 
-    osal_list_del(&zone->list);
+    osa_list_del(&zone->list);
     up(&mmz_lock);
 
     return 0;
@@ -716,7 +716,7 @@ int mmz_is_phys_in_mmz(unsigned long addr_start, unsigned long addr_len)
     unsigned long addr_end = addr_start + addr_len;
     unsigned long temp_start, temp_end;
 
-    osal_list_for_each_entry(p, &mmz_list, list) {
+    osa_list_for_each_entry(p, &mmz_list, list) {
         temp_start = p->phys_start;
         temp_end   = p->phys_start + p->nbytes;
         if ((addr_start >= temp_start) && (addr_end <= temp_end)) {
@@ -769,7 +769,7 @@ EXPORT_SYMBOL(mmz_mmb_flush_dcache_byaddr_safe);
 
 #ifdef CONFIG_PROC_FS
 
-int mmz_seq_show(struct osal_proc_dir_entry *sfile)
+int mmz_seq_show(struct osa_proc_dir_entry *sfile)
 {
     mmz_mmz_t *p = NULL;
     int len = 0;
@@ -782,14 +782,14 @@ int mmz_seq_show(struct osal_proc_dir_entry *sfile)
     mmz_trace_func();
 
     down(&mmz_lock);
-    osal_list_for_each_entry(p, &mmz_list, list) {
+    osa_list_for_each_entry(p, &mmz_list, list) {
         mmz_mmb_t *mmb = NULL;
-        osal_seq_printf(sfile, "+---ZONE: " MMZ_MMZ_FMT_S "\n", mmz_mmz_fmt_arg(p));
+        osa_seq_printf(sfile, "+---ZONE: " MMZ_MMZ_FMT_S "\n", mmz_mmz_fmt_arg(p));
         mmz_total_size += p->nbytes / 1024;
         ++zone_number;
 
-        osal_list_for_each_entry(mmb, &p->mmb_list, list) {
-            osal_seq_printf(sfile, "   |-MMB: " MMZ_MMB_FMT_S "\n", mmz_mmb_fmt_arg(mmb));
+        osa_list_for_each_entry(mmb, &p->mmb_list, list) {
+            osa_seq_printf(sfile, "   |-MMB: " MMZ_MMB_FMT_S "\n", mmz_mmb_fmt_arg(mmb));
             used_size += mmb->length / 1024;
             ++block_number;
         }
@@ -797,7 +797,7 @@ int mmz_seq_show(struct osal_proc_dir_entry *sfile)
 
     if (mmz_total_size != 0) {
         free_size = mmz_total_size - used_size;
-        osal_seq_printf(sfile, "\n---MMZ_USE_INFO:\n total size=%dKB(%dMB),"
+        osa_seq_printf(sfile, "\n---MMZ_USE_INFO:\n total size=%dKB(%dMB),"
                 "used=%dKB(%dMB + %dKB),remain=%dKB(%dMB + %dKB),"
                 "zone_number=%d,block_number=%d\n",
                 mmz_total_size, mmz_total_size / 1024,
@@ -815,9 +815,9 @@ int mmz_seq_show(struct osal_proc_dir_entry *sfile)
 
 static int __init media_mem_proc_init(void)
 {
-    osal_proc_entry_t *proc = NULL;
+    osa_proc_entry_t *proc = NULL;
 
-    proc = osal_create_proc_entry(MEDIA_MEM_NAME, NULL);
+    proc = osa_create_proc_entry(MEDIA_MEM_NAME, NULL);
     if (proc == NULL) {
         printk(KERN_ERR "Create mmz proc fail!\n");
         return -1;
@@ -829,7 +829,7 @@ static int __init media_mem_proc_init(void)
 
 static void __exit media_mem_proc_exit(void)
 {
-    osal_remove_proc_entry(MEDIA_MEM_NAME, NULL);
+    osa_remove_proc_entry(MEDIA_MEM_NAME, NULL);
 }
 
 #else
@@ -841,11 +841,11 @@ static void __exit media_mem_proc_exit(void) { }
 static void mmz_exit_check(void)
 {
     mmz_mmz_t* pmmz = NULL;
-    struct osal_list_head* p = NULL, *n = NULL;
+    struct osa_list_head* p = NULL, *n = NULL;
 
     mmz_trace_func();
 
-    osal_list_for_each_safe(p, n, &mmz_list) {
+    osa_list_for_each_safe(p, n, &mmz_list) {
         pmmz = list_entry(p,mmz_mmz_t,list);
         printk(KERN_WARNING "MMZ force removed: " MMZ_MMZ_FMT_S "\n",
                 mmz_mmz_fmt_arg(pmmz));

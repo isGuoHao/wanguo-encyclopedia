@@ -4,7 +4,7 @@
 #ifndef _OSAL_MMZ_H
 #define _OSAL_MMZ_H
 
-#include "osal.h"
+#include "osa.h"
 
 #define CACHE_LINE_SIZE            (0x40)
 #define MMZ_MMZ_NAME_LEN           32
@@ -18,12 +18,12 @@ struct mmz_media_memory_zone {
     unsigned long phys_start;
     unsigned long nbytes;
 
-    struct osal_list_head list;
+    struct osa_list_head list;
     union {
         struct device *cma_dev;
         unsigned char *bitmap;
     };
-    struct osal_list_head mmb_list;
+    struct osa_list_head mmb_list;
 
     unsigned int alloc_type;
     unsigned long block_align;
@@ -42,7 +42,7 @@ struct mmz_media_memory_block {
 #endif
     char name[MMZ_MMB_NAME_LEN];
     struct mmz_media_memory_zone *zone;
-    struct osal_list_head list;
+    struct osa_list_head list;
 
     unsigned long phys_addr;
     void *kvirt;
@@ -102,7 +102,7 @@ typedef struct mmz_media_memory_block mmz_mmb_t;
 #define mmz_length2grain(len) (mmz_grain_align(len) / MMZ_GRAIN)
 
 #define begin_list_for_each_mmz(p, gfp, mmz_name)        \
-    osal_list_for_each_entry(p, &mmz_list, list)              \
+    osa_list_for_each_entry(p, &mmz_list, list)              \
     {                                                    \
         if (gfp == 0 ? 0 : (p)->gfp != (gfp))            \
             continue;                                    \
@@ -157,7 +157,7 @@ struct mmb_info {
     int map_ref;
     int mmb_ref;
 
-    struct osal_list_head list;
+    struct osa_list_head list;
     mmz_mmb_t *mmb;
 #endif
 } __attribute__((aligned(8)));

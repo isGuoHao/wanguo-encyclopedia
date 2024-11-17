@@ -5,37 +5,37 @@
 #include <linux/kernel.h>
 #include <linux/vmalloc.h>
 #include <linux/slab.h>
-#include "osal.h"
+#include "osa.h"
 
-void *osal_vmalloc(unsigned long size)
+void *osa_vmalloc(unsigned long size)
 {
     return vmalloc(size);
 }
-EXPORT_SYMBOL(osal_vmalloc);
+EXPORT_SYMBOL(osa_vmalloc);
 
-void osal_vfree(const void *addr)
+void osa_vfree(const void *addr)
 {
     vfree(addr);
 }
-EXPORT_SYMBOL(osal_vfree);
+EXPORT_SYMBOL(osa_vfree);
 
-void *osal_kmalloc(unsigned long size, unsigned int osal_gfp_flag)
+void *osa_kmalloc(unsigned long size, unsigned int osa_gfp_flag)
 {
-    if (osal_gfp_flag == osal_gfp_kernel) {
+    if (osa_gfp_flag == osa_gfp_kernel) {
         return kmalloc(size, GFP_KERNEL);
-    } else if (osal_gfp_flag == osal_gfp_atomic) {
+    } else if (osa_gfp_flag == osa_gfp_atomic) {
         return kmalloc(size, GFP_ATOMIC);
     } else {
         return NULL;
     }
 }
-EXPORT_SYMBOL(osal_kmalloc);
+EXPORT_SYMBOL(osa_kmalloc);
 
-void osal_kfree(const void *addr)
+void osa_kfree(const void *addr)
 {
     kfree(addr);
 }
 
-EXPORT_SYMBOL(osal_kfree);
+EXPORT_SYMBOL(osa_kfree);
 
 

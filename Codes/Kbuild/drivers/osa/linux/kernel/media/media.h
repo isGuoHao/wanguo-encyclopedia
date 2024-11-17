@@ -8,8 +8,8 @@
 #include <linux/major.h>
 #include <linux/device.h>
 #include <linux/devfreq.h>
-#include "osal_list.h"
-#include "osal_devfreq.h"
+#include "osa_list.h"
+#include "osa_devfreq.h"
 
 #define MEDIA_DEVICE_MAJOR     218
 #define MEDIA_DYNAMIC_MINOR    255
@@ -46,7 +46,7 @@ struct media_ops {
 
     /* devfreq */
     int (*devfreq_target)(struct media_device *, unsigned long *, unsigned int);
-    int (*devfreq_get_dev_status)(struct media_device *, struct osal_devfreq_dev_status *);
+    int (*devfreq_get_dev_status)(struct media_device *, struct osa_devfreq_dev_status *);
     int (*devfreq_get_cur_freq)(struct media_device *, unsigned long *);
     void (*devfreq_exit)(struct media_device *);
 };
@@ -63,7 +63,7 @@ struct media_driver {
     container_of((drv), struct media_driver, driver)
 
 struct media_device {
-    struct osal_list_head list;
+    struct osa_list_head list;
 
     char devfs_name[MEDIA_MAX_DEV_NAME_LEN];
 
@@ -87,7 +87,7 @@ struct media_device {
 #define to_media_device(dev) \
     container_of((dev), struct media_device, device)
 
-int media_devfreq_register(struct media_device *media, osal_devfreq_para_t *devfreq_para);
+int media_devfreq_register(struct media_device *media, osa_devfreq_para_t *devfreq_para);
 void media_devfreq_unregister(struct media_device *media);
 
 int media_register(struct media_device *pdev);

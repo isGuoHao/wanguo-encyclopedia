@@ -34,8 +34,8 @@
 #include <asm/io.h>
 #include <asm/cacheflush.h>
 
-#include "osal_mmz.h"
-#include "osal.h"
+#include "osa_mmz.h"
+#include "osa.h"
 
 int mmz_userdev_mmap(struct file *file, struct vm_area_struct *vma);
 
@@ -54,7 +54,7 @@ struct mmz_userdev_info {
     pid_t pid;
     pid_t mmap_pid;
     struct semaphore sem;
-    struct osal_list_head list;
+    struct osa_list_head list;
 };
 
 static int mmz_flush_dcache_mmb_dirty(struct dirty_area *p_area)
@@ -183,7 +183,7 @@ static int ioctl_mmb_alloc(struct file *file,
     new_mmbinfo->mmb = mmb;
     new_mmbinfo->prot = PROT_READ;
     new_mmbinfo->flags = MAP_SHARED;
-    osal_list_add_tail(&new_mmbinfo->list, &pmu->list);
+    osa_list_add_tail(&new_mmbinfo->list, &pmu->list);
 
     pmi->phys_addr = new_mmbinfo->phys_addr;
 
@@ -197,7 +197,7 @@ static struct mmb_info *get_mmbinfo(unsigned long addr,
 {
     struct mmb_info *p = NULL;
 
-    osal_list_for_each_entry(p, &pmu->list, list) {
+    osa_list_for_each_entry(p, &pmu->list, list) {
         if ((addr >= p->phys_addr) && (addr < (p->phys_addr + p->size))) {
             break;
         }
@@ -230,7 +230,7 @@ static int _usrdev_mmb_free(struct mmb_info *p)
 {
     int ret = 0;
 
-    osal_list_del(&p->list);
+    osa_list_del(&p->list);
     mmz_mmb_put(p->mmb);
     ret = mmz_mmb_free(p->mmb);
     kfree(p);
@@ -866,7 +866,7 @@ static int mmz_userdev_release(struct inode *inode, struct file *file)
     struct mmz_userdev_info *pmu = file->private_data;
     struct mmb_info *p = NULL, *n = NULL;
 
-    osal_list_for_each_entry_safe(p, n, &pmu->list, list) {
+    osa_list_for_each_entry_safe(p, n, &pmu->list, list) {
         error_mmz("MMB LEAK(pid=%d): 0x%lX, %lu bytes, '%s'\n",
               pmu->pid, mmz_mmb_phys(p->mmb),
               mmz_mmb_length(p->mmb),

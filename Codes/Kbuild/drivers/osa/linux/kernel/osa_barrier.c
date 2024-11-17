@@ -1,47 +1,47 @@
 /*
  * Copyright (c) XMEDIA. All rights reserved.
  */
-#include "osal.h"
+#include "osa.h"
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <asm/barrier.h>
 
-void osal_mb(void)
+void osa_mb(void)
 {
     mb();
 }
-EXPORT_SYMBOL(osal_mb);
-void osal_rmb(void)
+EXPORT_SYMBOL(osa_mb);
+void osa_rmb(void)
 {
     rmb();
 }
-EXPORT_SYMBOL(osal_rmb);
-void osal_wmb(void)
+EXPORT_SYMBOL(osa_rmb);
+void osa_wmb(void)
 {
     wmb();
 }
-EXPORT_SYMBOL(osal_wmb);
-void osal_smp_mb(void)
+EXPORT_SYMBOL(osa_wmb);
+void osa_smp_mb(void)
 {
     smp_mb();
 }
-EXPORT_SYMBOL(osal_smp_mb);
-void osal_smp_rmb(void)
+EXPORT_SYMBOL(osa_smp_mb);
+void osa_smp_rmb(void)
 {
     smp_rmb();
 }
-EXPORT_SYMBOL(osal_smp_rmb);
-void osal_smp_wmb(void)
+EXPORT_SYMBOL(osa_smp_rmb);
+void osa_smp_wmb(void)
 {
     smp_wmb();
 }
-EXPORT_SYMBOL(osal_smp_wmb);
-void osal_isb(void)
+EXPORT_SYMBOL(osa_smp_wmb);
+void osa_isb(void)
 {
     isb();
 }
-EXPORT_SYMBOL(osal_isb);
-void osal_dsb(void)
+EXPORT_SYMBOL(osa_isb);
+void osa_dsb(void)
 {
 #ifdef CONFIG_64BIT
     dsb(sy);
@@ -49,8 +49,8 @@ void osal_dsb(void)
     dsb();
 #endif
 }
-EXPORT_SYMBOL(osal_dsb);
-void osal_dmb(void)
+EXPORT_SYMBOL(osa_dsb);
+void osa_dmb(void)
 {
 #ifdef CONFIG_64BIT
     dmb(sy);
@@ -58,4 +58,4 @@ void osal_dmb(void)
     dmb();
 #endif
 }
-EXPORT_SYMBOL(osal_dmb);
+EXPORT_SYMBOL(osa_dmb);

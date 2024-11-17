@@ -17,7 +17,7 @@
 #define fallthrough
 #endif
 
-extern struct osal_list_head mmz_list;
+extern struct osa_list_head mmz_list;
 
 long long max_malloc_size = 0x40000000UL;
 
@@ -69,7 +69,7 @@ static unsigned long find_fixed_region(unsigned long *region_len,
     start = mmz_align2(mmz->phys_start, align);
     len = mmz_grain_align(size);
 
-    osal_list_for_each_entry(p, &mmz->mmb_list, list) {
+    osa_list_for_each_entry(p, &mmz->mmb_list, list) {
         mmz_mmb_t *next = NULL;
         mmz_trace(4, "p->phys_addr=0x%08lX p->length = %luKB \t",
                   p->phys_addr, p->length / SZ_1K);
@@ -95,7 +95,7 @@ static unsigned long find_fixed_region(unsigned long *region_len,
         /*
            * if we have to alloc after the last node.
            */
-        if (osal_list_is_last(&p->list, &mmz->mmb_list)) {
+        if (osa_list_is_last(&p->list, &mmz->mmb_list)) {
             blank_len = mmz->phys_start + mmz->nbytes - start;
             if ((blank_len < fixed_len) && (blank_len >= len)) {
                 fixed_len = blank_len;
@@ -151,7 +151,7 @@ static int do_mmb_alloc(mmz_mmb_t *mmb)
     mmz_trace_func();
 
     /* add mmb sorted */
-    osal_list_for_each_entry(p, &mmb->zone->mmb_list, list) {
+    osa_list_for_each_entry(p, &mmb->zone->mmb_list, list) {
         if (mmb->phys_addr < p->phys_addr) {
             break;
         }
@@ -160,7 +160,7 @@ static int do_mmb_alloc(mmz_mmb_t *mmb)
                    mmb->zone->name, __FUNCTION__, __LINE__);
         }
     }
-    osal_list_add(&mmb->list, p->list.prev);
+    osa_list_add(&mmb->list, p->list.prev);
 
     mmz_trace(1, MMZ_MMB_FMT_S, mmz_mmb_fmt_arg(mmb));
 
@@ -293,7 +293,7 @@ static void __mmb_free(mmz_mmb_t *mmb)
 #endif
     }
 
-    osal_list_del(&mmb->list);
+    osa_list_del(&mmb->list);
     kfree(mmb);
 }
 

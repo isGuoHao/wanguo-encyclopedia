@@ -14,8 +14,8 @@
 #include <linux/proc_fs.h>
 #include <linux/fs.h>
 #include <linux/uaccess.h>
-#include "bsp.h"
-#include "bsp_osa.h"
+#include "pdc.h"
+#include "pdc_osa.h"
 
 // 定义CPLD设备结构体
 struct cpld_device {
@@ -42,7 +42,7 @@ int cpld_register(struct cpld_device *cpld_dev, const char *name);
 void cpld_unregister(struct cpld_device *cpld_dev);
 
 // 模块初始化和退出函数声明
-int bsp_cpld_init(void);
-void bsp_cpld_exit(void);
+int pdc_cpld_init(void);
+void pdc_cpld_exit(void);
 
 #endif // _BSP_CPLD_H_

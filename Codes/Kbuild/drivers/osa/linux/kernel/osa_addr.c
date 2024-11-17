@@ -1,7 +1,7 @@
 /*
  * Copyright (c) XMEDIA. All rights reserved.
  */
-#include "osal.h"
+#include "osa.h"
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <asm/io.h>
@@ -17,13 +17,13 @@
 
 #endif
 
-void *osal_ioremap(unsigned long phys_addr, unsigned long size)
+void *osa_ioremap(unsigned long phys_addr, unsigned long size)
 {
     return ioremap(phys_addr, size);
 }
-EXPORT_SYMBOL(osal_ioremap);
+EXPORT_SYMBOL(osa_ioremap);
 
-void *osal_ioremap_nocache(unsigned long phys_addr, unsigned long size)
+void *osa_ioremap_nocache(unsigned long phys_addr, unsigned long size)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
     return ioremap_nocache(phys_addr, size);
@@ -31,9 +31,9 @@ void *osal_ioremap_nocache(unsigned long phys_addr, unsigned long size)
     return ioremap(phys_addr, size);
 #endif
 }
-EXPORT_SYMBOL(osal_ioremap_nocache);
+EXPORT_SYMBOL(osa_ioremap_nocache);
 
-void *osal_ioremap_cached(unsigned long phys_addr, unsigned long size)
+void *osa_ioremap_cached(unsigned long phys_addr, unsigned long size)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 18, 0)
     return ioremap_cached(phys_addr, size);
@@ -42,34 +42,34 @@ void *osal_ioremap_cached(unsigned long phys_addr, unsigned long size)
 #endif
 }
 
-void *osal_ioremap_wc(unsigned long phys_addr, unsigned long size)
+void *osa_ioremap_wc(unsigned long phys_addr, unsigned long size)
 {
     return ioremap_wc(phys_addr, size);
 }
-EXPORT_SYMBOL(osal_ioremap_wc);
+EXPORT_SYMBOL(osa_ioremap_wc);
 
 
-EXPORT_SYMBOL(osal_ioremap_cached);
+EXPORT_SYMBOL(osa_ioremap_cached);
 
-void osal_iounmap(void *addr)
+void osa_iounmap(void *addr)
 {
     iounmap(addr);
 }
-EXPORT_SYMBOL(osal_iounmap);
+EXPORT_SYMBOL(osa_iounmap);
 
-unsigned long osal_copy_from_user(void *to, const void *from, unsigned long n)
+unsigned long osa_copy_from_user(void *to, const void *from, unsigned long n)
 {
     return copy_from_user(to, from, n);
 }
-EXPORT_SYMBOL(osal_copy_from_user);
+EXPORT_SYMBOL(osa_copy_from_user);
 
-unsigned long osal_copy_to_user(void *to, const void *from, unsigned long n)
+unsigned long osa_copy_to_user(void *to, const void *from, unsigned long n)
 {
     return copy_to_user(to, from, n);
 }
-EXPORT_SYMBOL(osal_copy_to_user);
+EXPORT_SYMBOL(osa_copy_to_user);
 
-int osal_access_ok(int type, const void *addr, unsigned long size)
+int osa_access_ok(int type, const void *addr, unsigned long size)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
     return access_ok(type, addr, size);
@@ -77,6 +77,6 @@ int osal_access_ok(int type, const void *addr, unsigned long size)
     return access_ok(addr, size);
 #endif
 }
-EXPORT_SYMBOL(osal_access_ok);
+EXPORT_SYMBOL(osa_access_ok);
 
 

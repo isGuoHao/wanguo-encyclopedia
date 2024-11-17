@@ -13,8 +13,8 @@
 #include <linux/kmod.h>
 #include <linux/devfreq.h>
 #include "media.h"
-#include "osal.h"
-#include "osal_devfreq.h"
+#include "osa.h"
+#include "osa_devfreq.h"
 
 #define DRVAL_DEBUG    0
 
@@ -30,30 +30,30 @@
             return -1;            \
     } while (0)
 
-typedef struct osal_coat_dev {
-    struct osal_dev osal_dev;
+typedef struct osa_coat_dev {
+    struct osa_dev osa_dev;
     struct media_device media_dev;
-} osal_coat_dev_t;
+} osa_coat_dev_t;
 
-struct osal_private_data {
-    struct osal_dev *dev;
+struct osa_private_data {
+    struct osa_dev *dev;
     void *data;
-    struct osal_poll table;
+    struct osa_poll table;
     int f_ref_cnt;
 };
 
 spinlock_t f_lock;
 
-extern void osal_device_init(void);
+extern void osa_device_init(void);
 
-void osal_device_init(void)
+void osa_device_init(void)
 {
     spin_lock_init(&f_lock);
 }
 
 static int __get_file(struct file *file)
 {
-    struct osal_private_data *pdata = NULL;
+    struct osa_private_data *pdata = NULL;
 
     spin_lock(&f_lock);
     pdata = file->private_data;
@@ -70,7 +70,7 @@ static int __get_file(struct file *file)
 
 static int __put_file(struct file *file)
 {
-    struct osal_private_data *pdata = NULL;
+    struct osa_private_data *pdata = NULL;
 
     spin_lock(&f_lock);
     pdata = file->private_data;
@@ -85,11 +85,11 @@ static int __put_file(struct file *file)
     return 0;
 }
 
-static int osal_open(struct inode *inode, struct file *file)
+static int osa_open(struct inode *inode, struct file *file)
 {
     struct media_device *media = NULL;
-    osal_coat_dev_t *coat_dev = NULL;
-    struct osal_private_data *pdata = NULL;
+    osa_coat_dev_t *coat_dev = NULL;
+    struct osa_private_data *pdata = NULL;
 
     if (!capable(CAP_SYS_RAWIO) || !capable(CAP_SYS_ADMIN)) {
         return -EPERM;
@@ -98,32 +98,32 @@ static int osal_open(struct inode *inode, struct file *file)
     // media = getmedia(inode);
     media = (struct media_device *)file->private_data;
     if (media == NULL) {
-        osal_printk("%s - get media device error!\n", __FUNCTION__);
+        osa_printk("%s - get media device error!\n", __FUNCTION__);
         return -1;
     }
-    coat_dev = osal_container_of(media, struct osal_coat_dev, media_dev);
-    pdata = (struct osal_private_data *)kmalloc(sizeof(struct osal_private_data), GFP_KERNEL);
+    coat_dev = osa_container_of(media, struct osa_coat_dev, media_dev);
+    pdata = (struct osa_private_data *)kmalloc(sizeof(struct osa_private_data), GFP_KERNEL);
     if (pdata == NULL) {
-        osal_printk("%s - kmalloc error!\n", __FUNCTION__);
+        osa_printk("%s - kmalloc error!\n", __FUNCTION__);
         return -1;
     }
     if (DRVAL_DEBUG) {
-        osal_printk("%s - file->private_data=%pK!\n", __FUNCTION__, pdata);
+        osa_printk("%s - file->private_data=%pK!\n", __FUNCTION__, pdata);
     }
 
-    memset(pdata, 0, sizeof(struct osal_private_data));
+    memset(pdata, 0, sizeof(struct osa_private_data));
 
     file->private_data = pdata;
-    pdata->dev = &(coat_dev->osal_dev);
-    if (coat_dev->osal_dev.fops->open != NULL) {
-        return coat_dev->osal_dev.fops->open((void *)&(pdata->data));
+    pdata->dev = &(coat_dev->osa_dev);
+    if (coat_dev->osa_dev.fops->open != NULL) {
+        return coat_dev->osa_dev.fops->open((void *)&(pdata->data));
     }
     return 0;
 }
 
-static ssize_t osal_read(struct file *file, char __user *buf, size_t size, loff_t *offset)
+static ssize_t osa_read(struct file *file, char __user *buf, size_t size, loff_t *offset)
 {
-    struct osal_private_data *pdata = file->private_data;
+    struct osa_private_data *pdata = file->private_data;
     int ret = 0;
 
     GET_FILE(file);
@@ -136,9 +136,9 @@ static ssize_t osal_read(struct file *file, char __user *buf, size_t size, loff_
     return ret;
 }
 
-static ssize_t osal_write(struct file *file, const char __user *buf, size_t size, loff_t *offset)
+static ssize_t osa_write(struct file *file, const char __user *buf, size_t size, loff_t *offset)
 {
-    struct osal_private_data *pdata = file->private_data;
+    struct osa_private_data *pdata = file->private_data;
     int ret = 0;
 
     GET_FILE(file);
@@ -149,14 +149,14 @@ static ssize_t osal_write(struct file *file, const char __user *buf, size_t size
     return ret;
 }
 
-static loff_t osal_llseek(struct file *file, loff_t offset, int whence)
+static loff_t osa_llseek(struct file *file, loff_t offset, int whence)
 {
-    struct osal_private_data *pdata = file->private_data;
+    struct osa_private_data *pdata = file->private_data;
     int ret = 0;
 
     GET_FILE(file);
     if (DRVAL_DEBUG) {
-        osal_printk("%s - file->private_data=%pK!\n", __FUNCTION__, pdata);
+        osa_printk("%s - file->private_data=%pK!\n", __FUNCTION__, pdata);
     }
 
     if (whence == SEEK_SET) {
@@ -177,15 +177,15 @@ static loff_t osal_llseek(struct file *file, loff_t offset, int whence)
     return (loff_t)ret;
 }
 
-static int osal_release(struct inode *inode, struct file *file)
+static int osa_release(struct inode *inode, struct file *file)
 {
     int ret = 0;
-    struct osal_private_data *pdata = file->private_data;
+    struct osa_private_data *pdata = file->private_data;
 
     GET_FILE(file);
 
     if (DRVAL_DEBUG) {
-        osal_printk("%s - file->private_data=%pK!\n", __FUNCTION__, pdata);
+        osa_printk("%s - file->private_data=%pK!\n", __FUNCTION__, pdata);
     }
 
     if (pdata->dev->fops->release != NULL) {
@@ -193,14 +193,14 @@ static int osal_release(struct inode *inode, struct file *file)
     }
     if (ret != 0) {
         PUT_FILE(file);
-        osal_printk("%s - release failed!\n", __FUNCTION__);
+        osa_printk("%s - release failed!\n", __FUNCTION__);
         return ret;
     }
 
     PUT_FILE(file);
     spin_lock(&f_lock);
     if (pdata->f_ref_cnt != 0) {
-        osal_printk("%s - release failed!\n", __FUNCTION__);
+        osa_printk("%s - release failed!\n", __FUNCTION__);
         spin_unlock(&f_lock);
         return -1;
     }
@@ -211,14 +211,14 @@ static int osal_release(struct inode *inode, struct file *file)
     return 0;
 }
 
-static long __osal_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+static long __osa_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     int ret = -1;
-    struct osal_private_data *pdata = file->private_data;
+    struct osa_private_data *pdata = file->private_data;
     char *kbuf = NULL;
 
     if (DRVAL_DEBUG) {
-        osal_printk("%s - file->private_data=%pK!\n", __FUNCTION__, pdata);
+        osa_printk("%s - file->private_data=%pK!\n", __FUNCTION__, pdata);
     }
 
     if (((_IOC_SIZE(cmd) == 0) && (_IOC_DIR(cmd) != _IOC_NONE))) {
@@ -226,7 +226,7 @@ static long __osal_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned 
     }
 
     if ((_IOC_DIR(cmd) != _IOC_NONE) && (((char *)(uintptr_t)arg) == NULL)) {
-        osal_printk("%s - Input param err,it is null!\n", __FUNCTION__);
+        osa_printk("%s - Input param err,it is null!\n", __FUNCTION__);
         return -1;
     }
 
@@ -239,7 +239,7 @@ static long __osal_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned 
     } else if (_IOC_DIR(cmd) == _IOC_WRITE) {
         kbuf = (char *)vmalloc(_IOC_SIZE(cmd));
         if (kbuf == NULL) {
-            osal_printk("%s - vmalloc failed!\n", __FUNCTION__);
+            osa_printk("%s - vmalloc failed!\n", __FUNCTION__);
             return -1;
         }
 
@@ -257,7 +257,7 @@ static long __osal_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned 
     } else if (_IOC_DIR(cmd) == _IOC_READ) {
         kbuf = vmalloc(_IOC_SIZE(cmd));
         if (kbuf == NULL) {
-            osal_printk("%s - vmalloc failed!\n", __FUNCTION__);
+            osa_printk("%s - vmalloc failed!\n", __FUNCTION__);
             return -1;
         }
         if (pdata->dev->fops->unlocked_ioctl == NULL) {
@@ -275,7 +275,7 @@ static long __osal_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned 
     } else if (_IOC_DIR(cmd) == (_IOC_READ + _IOC_WRITE)) {
         kbuf = vmalloc(_IOC_SIZE(cmd));
         if (kbuf == NULL) {
-            osal_printk("%s - vmalloc failed!\n", __FUNCTION__);
+            osa_printk("%s - vmalloc failed!\n", __FUNCTION__);
             return -1;
         }
 
@@ -305,27 +305,27 @@ static long __osal_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned 
     return ret;
 }
 
-static long osal_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+static long osa_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     long ret = 0;
 
     GET_FILE(file);
 
-    ret = __osal_unlocked_ioctl(file, cmd, arg);
+    ret = __osa_unlocked_ioctl(file, cmd, arg);
     PUT_FILE(file);
 
     return ret;
 }
 
 #ifdef CONFIG_COMPAT
-static long __osal_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+static long __osa_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     int ret = -1;
-    struct osal_private_data *pdata = file->private_data;
+    struct osa_private_data *pdata = file->private_data;
     char *kbuf = NULL;
 
     if (DRVAL_DEBUG) {
-        osal_printk("%s - file->private_data=%pK!\n", __FUNCTION__, pdata);
+        osa_printk("%s - file->private_data=%pK!\n", __FUNCTION__, pdata);
     }
 
     if (((_IOC_SIZE(cmd) == 0) && (_IOC_DIR(cmd) != _IOC_NONE))) {
@@ -333,7 +333,7 @@ static long __osal_compat_ioctl(struct file *file, unsigned int cmd, unsigned lo
     }
 
     if ((_IOC_DIR(cmd) != _IOC_NONE) && (((char *)(uintptr_t)arg) == NULL)) {
-        osal_printk("%s - Input param err,it is null!\n", __FUNCTION__);
+        osa_printk("%s - Input param err,it is null!\n", __FUNCTION__);
         return -1;
     }
 
@@ -346,7 +346,7 @@ static long __osal_compat_ioctl(struct file *file, unsigned int cmd, unsigned lo
     } else if (_IOC_DIR(cmd) == _IOC_WRITE) {
         kbuf = (char *)vmalloc(_IOC_SIZE(cmd));
         if (kbuf == NULL) {
-            osal_printk("%s - vmalloc failed!\n", __FUNCTION__);
+            osa_printk("%s - vmalloc failed!\n", __FUNCTION__);
             return -1;
         }
 
@@ -364,7 +364,7 @@ static long __osal_compat_ioctl(struct file *file, unsigned int cmd, unsigned lo
     } else if (_IOC_DIR(cmd) == _IOC_READ) {
         kbuf = vmalloc(_IOC_SIZE(cmd));
         if (kbuf == NULL) {
-            osal_printk("%s - vmalloc failed!\n", __FUNCTION__);
+            osa_printk("%s - vmalloc failed!\n", __FUNCTION__);
             return -1;
         }
         if (pdata->dev->fops->compat_ioctl == NULL) {
@@ -382,7 +382,7 @@ static long __osal_compat_ioctl(struct file *file, unsigned int cmd, unsigned lo
     } else if (_IOC_DIR(cmd) == (_IOC_READ + _IOC_WRITE)) {
         kbuf = vmalloc(_IOC_SIZE(cmd));
         if (kbuf == NULL) {
-            osal_printk("%s - vmalloc failed!\n", __FUNCTION__);
+            osa_printk("%s - vmalloc failed!\n", __FUNCTION__);
             return -1;
         }
 
@@ -412,13 +412,13 @@ static long __osal_compat_ioctl(struct file *file, unsigned int cmd, unsigned lo
     return ret;
 }
 
-static long osal_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+static long osa_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     long ret = 0;
 
     GET_FILE(file);
 
-    ret = __osal_compat_ioctl(file, cmd, arg);
+    ret = __osa_compat_ioctl(file, cmd, arg);
     PUT_FILE(file);
 
     return ret;
@@ -426,16 +426,16 @@ static long osal_compat_ioctl(struct file *file, unsigned int cmd, unsigned long
 
 #endif
 
-static unsigned int osal_poll(struct file *file, struct poll_table_struct *table)
+static unsigned int osa_poll(struct file *file, struct poll_table_struct *table)
 {
-    struct osal_private_data *pdata = file->private_data;
-    struct osal_poll t;
+    struct osa_private_data *pdata = file->private_data;
+    struct osa_poll t;
     unsigned int ret = 0;
 
     GET_FILE(file);
 
     if (DRVAL_DEBUG) {
-        osal_printk("%s - table=%pK, file=%pK!\n", __FUNCTION__, table, file);
+        osa_printk("%s - table=%pK, file=%pK!\n", __FUNCTION__, table, file);
     }
     t.poll_table = table;
     t.data = file;
@@ -447,11 +447,11 @@ static unsigned int osal_poll(struct file *file, struct poll_table_struct *table
     return ret;
 }
 
-static int __osal_valid_mmap_phys_addr_range(unsigned long pfn, size_t size)
+static int __osa_valid_mmap_phys_addr_range(unsigned long pfn, size_t size)
 {
     /* check physical addr greater than the max addr supported by the system */
     if ((pfn + (size >> PAGE_SHIFT)) > (1 + ((~0UL) >> PAGE_SHIFT))) {
-        osal_printk("--%s - %d--!\n", __FUNCTION__, __LINE__);
+        osa_printk("--%s - %d--!\n", __FUNCTION__, __LINE__);
         return 0;
     }
 
@@ -459,7 +459,7 @@ static int __osal_valid_mmap_phys_addr_range(unsigned long pfn, size_t size)
 #if 0
     /* check physical addr is ram region */
     if (pfn_valid(pfn) || pfn_valid(pfn + (size >> PAGE_SHIFT))) {
-        osal_printk("--%s - %d--!\n", __FUNCTION__, __LINE__);
+        osa_printk("--%s - %d--!\n", __FUNCTION__, __LINE__);
         return 0;
     }
 #endif
@@ -467,7 +467,7 @@ static int __osal_valid_mmap_phys_addr_range(unsigned long pfn, size_t size)
     /* It's necessary for the variable "size" to align 4k(page_size). */
 #define PAGE_SIZE_MASK 0xfffffffffffff000ULL
     if ((unsigned long)size & (~PAGE_SIZE_MASK)) {
-        osal_printk("--%s - %d--!\n", __FUNCTION__, __LINE__);
+        osa_printk("--%s - %d--!\n", __FUNCTION__, __LINE__);
         return 0;
     }
 #undef PAGE_SIZE_MASK
@@ -475,422 +475,422 @@ static int __osal_valid_mmap_phys_addr_range(unsigned long pfn, size_t size)
     return 1;
 }
 
-static int osal_mmap(struct file *file, struct vm_area_struct *vm)
+static int osa_mmap(struct file *file, struct vm_area_struct *vm)
 {
-    struct osal_vm osal_vm;
-    struct osal_private_data *pdata = file->private_data;
-    osal_vm.vm = vm;
+    struct osa_vm osa_vm;
+    struct osa_private_data *pdata = file->private_data;
+    osa_vm.vm = vm;
 
-    if (!__osal_valid_mmap_phys_addr_range(vm->vm_pgoff, vm->vm_end - vm->vm_start)) {
-        osal_printk("\n%s - invalid argument   size=%ld!!!\n", __FUNCTION__, vm->vm_end - vm->vm_start);
+    if (!__osa_valid_mmap_phys_addr_range(vm->vm_pgoff, vm->vm_end - vm->vm_start)) {
+        osa_printk("\n%s - invalid argument   size=%ld!!!\n", __FUNCTION__, vm->vm_end - vm->vm_start);
         return -EINVAL;
     }
 
     if (DRVAL_DEBUG) {
-        osal_printk("%s - start=%lx, end=%lx!, off=%lx\n", __FUNCTION__, vm->vm_start, vm->vm_end, vm->vm_pgoff);
+        osa_printk("%s - start=%lx, end=%lx!, off=%lx\n", __FUNCTION__, vm->vm_start, vm->vm_end, vm->vm_pgoff);
     }
     if (pdata->dev->fops->mmap != NULL) {
-        return pdata->dev->fops->mmap(&osal_vm, vm->vm_start, vm->vm_end, vm->vm_pgoff, (void *)&(pdata->data));
+        return pdata->dev->fops->mmap(&osa_vm, vm->vm_start, vm->vm_end, vm->vm_pgoff, (void *)&(pdata->data));
     }
     return 0;
 }
 
-static struct file_operations s_osal_fops = {
+static struct file_operations s_osa_fops = {
     .owner = THIS_MODULE,
-    .open = osal_open,
-    .read = osal_read,
-    .write = osal_write,
-    .llseek = osal_llseek,
-    .unlocked_ioctl = osal_unlocked_ioctl,
-    .release = osal_release,
-    .poll = osal_poll,
-    .mmap = osal_mmap,
+    .open = osa_open,
+    .read = osa_read,
+    .write = osa_write,
+    .llseek = osa_llseek,
+    .unlocked_ioctl = osa_unlocked_ioctl,
+    .release = osa_release,
+    .poll = osa_poll,
+    .mmap = osa_mmap,
 #ifdef CONFIG_COMPAT
-    .compat_ioctl = osal_compat_ioctl,
+    .compat_ioctl = osa_compat_ioctl,
 #endif
 };
 
-static int osal_pm_prepare(struct media_device *media)
+static int osa_pm_prepare(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_prepare) {
-        return coat_dev->osal_dev.osal_pmops->pm_prepare(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_prepare) {
+        return coat_dev->osa_dev.osa_pmops->pm_prepare(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static void osal_pm_complete(struct media_device *media)
+static void osa_pm_complete(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_complete) {
-        coat_dev->osal_dev.osal_pmops->pm_complete(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_complete) {
+        coat_dev->osa_dev.osa_pmops->pm_complete(&(coat_dev->osa_dev));
     }
 }
 
-static int osal_pm_suspend(struct media_device *media)
+static int osa_pm_suspend(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_suspend) {
-        return coat_dev->osal_dev.osal_pmops->pm_suspend(&(coat_dev->osal_dev));
-    }
-    return 0;
-}
-
-static int osal_pm_resume(struct media_device *media)
-{
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_resume) {
-        return coat_dev->osal_dev.osal_pmops->pm_resume(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_suspend) {
+        return coat_dev->osa_dev.osa_pmops->pm_suspend(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_freeze(struct media_device *media)
+static int osa_pm_resume(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_freeze) {
-        return coat_dev->osal_dev.osal_pmops->pm_freeze(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_resume) {
+        return coat_dev->osa_dev.osa_pmops->pm_resume(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_thaw(struct media_device *media)
+static int osa_pm_freeze(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_thaw) {
-        return coat_dev->osal_dev.osal_pmops->pm_thaw(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_freeze) {
+        return coat_dev->osa_dev.osa_pmops->pm_freeze(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_poweroff(struct media_device *media)
+static int osa_pm_thaw(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_poweroff) {
-        return coat_dev->osal_dev.osal_pmops->pm_poweroff(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_thaw) {
+        return coat_dev->osa_dev.osa_pmops->pm_thaw(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_restore(struct media_device *media)
+static int osa_pm_poweroff(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_restore) {
-        return coat_dev->osal_dev.osal_pmops->pm_restore(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_poweroff) {
+        return coat_dev->osa_dev.osa_pmops->pm_poweroff(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_suspend_late(struct media_device *media)
+static int osa_pm_restore(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_suspend_late) {
-        return coat_dev->osal_dev.osal_pmops->pm_suspend_late(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_restore) {
+        return coat_dev->osa_dev.osa_pmops->pm_restore(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_resume_early(struct media_device *media)
+static int osa_pm_suspend_late(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_resume_early) {
-        return coat_dev->osal_dev.osal_pmops->pm_resume_early(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_suspend_late) {
+        return coat_dev->osa_dev.osa_pmops->pm_suspend_late(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_freeze_late(struct media_device *media)
+static int osa_pm_resume_early(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_freeze_late) {
-        return coat_dev->osal_dev.osal_pmops->pm_freeze_late(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_resume_early) {
+        return coat_dev->osa_dev.osa_pmops->pm_resume_early(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_thaw_early(struct media_device *media)
+static int osa_pm_freeze_late(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_thaw_early) {
-        return coat_dev->osal_dev.osal_pmops->pm_thaw_early(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_freeze_late) {
+        return coat_dev->osa_dev.osa_pmops->pm_freeze_late(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_poweroff_late(struct media_device *media)
+static int osa_pm_thaw_early(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_poweroff_late) {
-        return coat_dev->osal_dev.osal_pmops->pm_poweroff_late(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_thaw_early) {
+        return coat_dev->osa_dev.osa_pmops->pm_thaw_early(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_restore_early(struct media_device *media)
+static int osa_pm_poweroff_late(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_restore_early) {
-        return coat_dev->osal_dev.osal_pmops->pm_restore_early(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_poweroff_late) {
+        return coat_dev->osa_dev.osa_pmops->pm_poweroff_late(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_suspend_noirq(struct media_device *media)
+static int osa_pm_restore_early(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_suspend_noirq) {
-        return coat_dev->osal_dev.osal_pmops->pm_suspend_noirq(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_restore_early) {
+        return coat_dev->osa_dev.osa_pmops->pm_restore_early(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_resume_noirq(struct media_device *media)
+static int osa_pm_suspend_noirq(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_resume_noirq) {
-        return coat_dev->osal_dev.osal_pmops->pm_resume_noirq(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_suspend_noirq) {
+        return coat_dev->osa_dev.osa_pmops->pm_suspend_noirq(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_freeze_noirq(struct media_device *media)
+static int osa_pm_resume_noirq(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_freeze_noirq) {
-        return coat_dev->osal_dev.osal_pmops->pm_freeze_noirq(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_resume_noirq) {
+        return coat_dev->osa_dev.osa_pmops->pm_resume_noirq(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_thaw_noirq(struct media_device *media)
+static int osa_pm_freeze_noirq(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_thaw_noirq) {
-        return coat_dev->osal_dev.osal_pmops->pm_thaw_noirq(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_freeze_noirq) {
+        return coat_dev->osa_dev.osa_pmops->pm_freeze_noirq(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_poweroff_noirq(struct media_device *media)
+static int osa_pm_thaw_noirq(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_poweroff_noirq) {
-        return coat_dev->osal_dev.osal_pmops->pm_poweroff_noirq(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_thaw_noirq) {
+        return coat_dev->osa_dev.osa_pmops->pm_thaw_noirq(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_pm_restore_noirq(struct media_device *media)
+static int osa_pm_poweroff_noirq(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_pmops && coat_dev->osal_dev.osal_pmops->pm_restore_noirq) {
-        return coat_dev->osal_dev.osal_pmops->pm_restore_noirq(&(coat_dev->osal_dev));
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_poweroff_noirq) {
+        return coat_dev->osa_dev.osa_pmops->pm_poweroff_noirq(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_devfreq_target(struct media_device *media, unsigned long *freq, unsigned int flags)
+static int osa_pm_restore_noirq(struct media_device *media)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_profile->target) {
-        return coat_dev->osal_dev.osal_profile->target(&(coat_dev->osal_dev), freq, flags);
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_pmops && coat_dev->osa_dev.osa_pmops->pm_restore_noirq) {
+        return coat_dev->osa_dev.osa_pmops->pm_restore_noirq(&(coat_dev->osa_dev));
     }
     return 0;
 }
 
-static int osal_devfreq_get_dev_status(struct media_device *media, struct osal_devfreq_dev_status *stat)
+static int osa_devfreq_target(struct media_device *media, unsigned long *freq, unsigned int flags)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_profile->get_dev_status) {
-        return coat_dev->osal_dev.osal_profile->get_dev_status(&(coat_dev->osal_dev), stat);
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_profile->target) {
+        return coat_dev->osa_dev.osa_profile->target(&(coat_dev->osa_dev), freq, flags);
     }
     return 0;
 }
 
-static int osal_devfreq_get_cur_freq(struct media_device *media, unsigned long *freq)
+static int osa_devfreq_get_dev_status(struct media_device *media, struct osa_devfreq_dev_status *stat)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
-    if (coat_dev->osal_dev.osal_profile->get_cur_freq) {
-        return coat_dev->osal_dev.osal_profile->get_cur_freq(&(coat_dev->osal_dev), freq);
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_profile->get_dev_status) {
+        return coat_dev->osa_dev.osa_profile->get_dev_status(&(coat_dev->osa_dev), stat);
     }
     return 0;
 }
 
-static void osal_devfreq_exit(struct media_device *media)
+static int osa_devfreq_get_cur_freq(struct media_device *media, unsigned long *freq)
 {
-    osal_coat_dev_t *coat_dev = container_of(media, struct osal_coat_dev, media_dev);
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+    if (coat_dev->osa_dev.osa_profile->get_cur_freq) {
+        return coat_dev->osa_dev.osa_profile->get_cur_freq(&(coat_dev->osa_dev), freq);
+    }
+    return 0;
+}
 
-    if (coat_dev->osal_dev.osal_profile->exit) {
-        return coat_dev->osal_dev.osal_profile->exit(&(coat_dev->osal_dev));
+static void osa_devfreq_exit(struct media_device *media)
+{
+    osa_coat_dev_t *coat_dev = container_of(media, struct osa_coat_dev, media_dev);
+
+    if (coat_dev->osa_dev.osa_profile->exit) {
+        return coat_dev->osa_dev.osa_profile->exit(&(coat_dev->osa_dev));
     }
 }
 
-int osal_devfreq_register(osal_dev_t *osal_dev, struct osal_devfreq_dev_profile *osal_profile,
+int osa_devfreq_register(osa_dev_t *osa_dev, struct osa_devfreq_dev_profile *osa_profile,
     const char *governor, void *data)
 {
     struct media_device *media = NULL;
-    osal_devfreq_para_t devfreq_para = { 0 };
+    osa_devfreq_para_t devfreq_para = { 0 };
 
-    if ((osal_dev == NULL) || (osal_profile == NULL)) {
-        osal_printk("%s - parameter invalid!\n", __FUNCTION__);
+    if ((osa_dev == NULL) || (osa_profile == NULL)) {
+        osa_printk("%s - parameter invalid!\n", __FUNCTION__);
         return -1;
     }
-    media = &(((osal_coat_dev_t *)(osal_dev->dev))->media_dev);
-    if ((governor != NULL) && (osal_strcmp(governor, "userspace") == 0)) {
-        osal_printk("Not supported governor\r\n");
+    media = &(((osa_coat_dev_t *)(osa_dev->dev))->media_dev);
+    if ((governor != NULL) && (osa_strcmp(governor, "userspace") == 0)) {
+        osa_printk("Not supported governor\r\n");
         return -1;
     }
 
-    osal_dev->osal_profile = osal_profile;
+    osa_dev->osa_profile = osa_profile;
 
-    devfreq_para.initial_freq = osal_dev->osal_profile->initial_freq;
-    devfreq_para.polling_ms = osal_dev->osal_profile->polling_ms;
-    devfreq_para.freq_table = osal_dev->osal_profile->freq_table;
-    devfreq_para.max_state = osal_dev->osal_profile->max_state;
+    devfreq_para.initial_freq = osa_dev->osa_profile->initial_freq;
+    devfreq_para.polling_ms = osa_dev->osa_profile->polling_ms;
+    devfreq_para.freq_table = osa_dev->osa_profile->freq_table;
+    devfreq_para.max_state = osa_dev->osa_profile->max_state;
 
     return media_devfreq_register(media, &devfreq_para);
 }
-EXPORT_SYMBOL(osal_devfreq_register);
+EXPORT_SYMBOL(osa_devfreq_register);
 
-void osal_devfreq_unregister(osal_dev_t *osal_dev)
+void osa_devfreq_unregister(osa_dev_t *osa_dev)
 {
     struct media_device *media = NULL;
 
-    if ((osal_dev == NULL) || (osal_dev->osal_profile == NULL)) {
-        osal_printk("%s - parameter invalid!\n", __FUNCTION__);
+    if ((osa_dev == NULL) || (osa_dev->osa_profile == NULL)) {
+        osa_printk("%s - parameter invalid!\n", __FUNCTION__);
         return;
     }
 
-    media = &(((osal_coat_dev_t *)(osal_dev->dev))->media_dev);
+    media = &(((osa_coat_dev_t *)(osa_dev->dev))->media_dev);
     media_devfreq_unregister(media);
 }
-EXPORT_SYMBOL(osal_devfreq_unregister);
+EXPORT_SYMBOL(osa_devfreq_unregister);
 
-static struct media_ops s_osal_pmops = {
-    .pm_prepare = osal_pm_prepare,
-    .pm_complete = osal_pm_complete,
-    .pm_suspend = osal_pm_suspend,
-    .pm_resume = osal_pm_resume,
-    .pm_freeze = osal_pm_freeze,
-    .pm_thaw = osal_pm_thaw,
-    .pm_poweroff = osal_pm_poweroff,
-    .pm_restore = osal_pm_restore,
-    .pm_suspend_late = osal_pm_suspend_late,
-    .pm_resume_early = osal_pm_resume_early,
-    .pm_freeze_late = osal_pm_freeze_late,
-    .pm_thaw_early = osal_pm_thaw_early,
-    .pm_poweroff_late = osal_pm_poweroff_late,
-    .pm_restore_early = osal_pm_restore_early,
-    .pm_suspend_noirq = osal_pm_suspend_noirq,
-    .pm_resume_noirq = osal_pm_resume_noirq,
-    .pm_freeze_noirq = osal_pm_freeze_noirq,
-    .pm_thaw_noirq = osal_pm_thaw_noirq,
-    .pm_poweroff_noirq = osal_pm_poweroff_noirq,
-    .pm_restore_noirq = osal_pm_restore_noirq,
+static struct media_ops s_osa_pmops = {
+    .pm_prepare = osa_pm_prepare,
+    .pm_complete = osa_pm_complete,
+    .pm_suspend = osa_pm_suspend,
+    .pm_resume = osa_pm_resume,
+    .pm_freeze = osa_pm_freeze,
+    .pm_thaw = osa_pm_thaw,
+    .pm_poweroff = osa_pm_poweroff,
+    .pm_restore = osa_pm_restore,
+    .pm_suspend_late = osa_pm_suspend_late,
+    .pm_resume_early = osa_pm_resume_early,
+    .pm_freeze_late = osa_pm_freeze_late,
+    .pm_thaw_early = osa_pm_thaw_early,
+    .pm_poweroff_late = osa_pm_poweroff_late,
+    .pm_restore_early = osa_pm_restore_early,
+    .pm_suspend_noirq = osa_pm_suspend_noirq,
+    .pm_resume_noirq = osa_pm_resume_noirq,
+    .pm_freeze_noirq = osa_pm_freeze_noirq,
+    .pm_thaw_noirq = osa_pm_thaw_noirq,
+    .pm_poweroff_noirq = osa_pm_poweroff_noirq,
+    .pm_restore_noirq = osa_pm_restore_noirq,
 
-    .devfreq_target = osal_devfreq_target,
-    .devfreq_get_dev_status = osal_devfreq_get_dev_status,
-    .devfreq_get_cur_freq = osal_devfreq_get_cur_freq,
-    .devfreq_exit = osal_devfreq_exit,
+    .devfreq_target = osa_devfreq_target,
+    .devfreq_get_dev_status = osa_devfreq_get_dev_status,
+    .devfreq_get_cur_freq = osa_devfreq_get_cur_freq,
+    .devfreq_exit = osa_devfreq_exit,
 };
 
-osal_dev_t *osal_createdev(const char *name)
+osa_dev_t *osa_createdev(const char *name)
 {
-    osal_coat_dev_t *pdev = NULL;
+    osa_coat_dev_t *pdev = NULL;
     if (name == NULL) {
-        osal_printk("%s - parameter invalid!\n", __FUNCTION__);
+        osa_printk("%s - parameter invalid!\n", __FUNCTION__);
         return NULL;
     }
-    pdev = (osal_coat_dev_t *)kmalloc(sizeof(osal_coat_dev_t), GFP_KERNEL);
+    pdev = (osa_coat_dev_t *)kmalloc(sizeof(osa_coat_dev_t), GFP_KERNEL);
     if (pdev == NULL) {
-        osal_printk("%s - kmalloc error!\n", __FUNCTION__);
+        osa_printk("%s - kmalloc error!\n", __FUNCTION__);
         return NULL;
     }
-    memset(pdev, 0, sizeof(osal_coat_dev_t));
-    osal_strncpy(pdev->osal_dev.name, name, sizeof(pdev->osal_dev.name) - 1);
-    pdev->osal_dev.dev = pdev;
-    return &(pdev->osal_dev);
+    memset(pdev, 0, sizeof(osa_coat_dev_t));
+    osa_strncpy(pdev->osa_dev.name, name, sizeof(pdev->osa_dev.name) - 1);
+    pdev->osa_dev.dev = pdev;
+    return &(pdev->osa_dev);
 }
-EXPORT_SYMBOL(osal_createdev);
+EXPORT_SYMBOL(osa_createdev);
 
-int osal_destroydev(osal_dev_t *osal_dev)
+int osa_destroydev(osa_dev_t *osa_dev)
 {
-    osal_coat_dev_t *pdev = NULL;
-    if (osal_dev == NULL) {
-        osal_printk("%s - parameter invalid!\n", __FUNCTION__);
+    osa_coat_dev_t *pdev = NULL;
+    if (osa_dev == NULL) {
+        osa_printk("%s - parameter invalid!\n", __FUNCTION__);
         return -1;
     }
-    pdev = osal_dev->dev;
+    pdev = osa_dev->dev;
     if (pdev == NULL) {
-        osal_printk("%s - parameter invalid!\n", __FUNCTION__);
+        osa_printk("%s - parameter invalid!\n", __FUNCTION__);
         return -1;
     }
     kfree(pdev);
     return 0;
 }
-EXPORT_SYMBOL(osal_destroydev);
+EXPORT_SYMBOL(osa_destroydev);
 
-int osal_registerdevice(osal_dev_t *osal_dev)
+int osa_registerdevice(osa_dev_t *osa_dev)
 {
     struct media_device *media = NULL;
-    if ((osal_dev == NULL) || (osal_dev->fops == NULL)) {
-        osal_printk("%s - parameter invalid!\n", __FUNCTION__);
+    if ((osa_dev == NULL) || (osa_dev->fops == NULL)) {
+        osa_printk("%s - parameter invalid!\n", __FUNCTION__);
         return -1;
     }
-    media = &(((osal_coat_dev_t *)(osal_dev->dev))->media_dev);
-    if (osal_dev->minor != 0) {
-        media->minor = osal_dev->minor;
+    media = &(((osa_coat_dev_t *)(osa_dev->dev))->media_dev);
+    if (osa_dev->minor != 0) {
+        media->minor = osa_dev->minor;
     } else {
         media->minor = MEDIA_DYNAMIC_MINOR;
     }
     media->owner = THIS_MODULE;
-    media->fops = &s_osal_fops;
-    media->drvops = &s_osal_pmops;
-    osal_strncpy(media->devfs_name, osal_dev->name, sizeof(media->devfs_name) - 1);
+    media->fops = &s_osa_fops;
+    media->drvops = &s_osa_pmops;
+    osa_strncpy(media->devfs_name, osa_dev->name, sizeof(media->devfs_name) - 1);
     return media_register(media);
 }
-EXPORT_SYMBOL(osal_registerdevice);
+EXPORT_SYMBOL(osa_registerdevice);
 
-void osal_deregisterdevice(osal_dev_t *pdev)
+void osa_deregisterdevice(osa_dev_t *pdev)
 {
     if (pdev == NULL) {
-        osal_printk("%s - parameter invalid!\n", __FUNCTION__);
+        osa_printk("%s - parameter invalid!\n", __FUNCTION__);
         return;
     }
-    media_unregister((struct media_device *)&(((osal_coat_dev_t *)(pdev->dev))->media_dev));
+    media_unregister((struct media_device *)&(((osa_coat_dev_t *)(pdev->dev))->media_dev));
 }
-EXPORT_SYMBOL(osal_deregisterdevice);
+EXPORT_SYMBOL(osa_deregisterdevice);
 
-void osal_poll_wait(osal_poll_t *table, osal_wait_t *wait)
+void osa_poll_wait(osa_poll_t *table, osa_wait_t *wait)
 {
     if (DRVAL_DEBUG) {
-        osal_printk("%s - call poll_wait +!, table=%pK, file=%pK\n", __FUNCTION__, table->poll_table, table->data);
+        osa_printk("%s - call poll_wait +!, table=%pK, file=%pK\n", __FUNCTION__, table->poll_table, table->data);
     }
 
     poll_wait ((struct file *)table->data, (wait_queue_head_t *)(wait->wait), table->poll_table);
 
     if (DRVAL_DEBUG) {
-        osal_printk("%s - call poll_wait -!\n", __FUNCTION__);
+        osa_printk("%s - call poll_wait -!\n", __FUNCTION__);
     }
 }
-EXPORT_SYMBOL(osal_poll_wait);
+EXPORT_SYMBOL(osa_poll_wait);
 
 #if 0
-void osal_pgprot_noncached(osal_vm_t *vm) {
+void osa_pgprot_noncached(osa_vm_t *vm) {
     struct vm_area_struct *v = (struct vm_area_struct *)(vm->vm);
     v->vm_page_prot = pgprot_noncached(v->vm_page_prot);
 }
 #else
-void osal_pgprot_noncached(osal_vm_t *vm)
+void osa_pgprot_noncached(osa_vm_t *vm)
 {
     struct vm_area_struct *v = (struct vm_area_struct *)(vm->vm);
     v->vm_page_prot = pgprot_writecombine(v->vm_page_prot);
 }
 
 #endif
-EXPORT_SYMBOL(osal_pgprot_noncached);
+EXPORT_SYMBOL(osa_pgprot_noncached);
 
-void osal_pgprot_cached(osal_vm_t *vm)
+void osa_pgprot_cached(osa_vm_t *vm)
 {
     struct vm_area_struct *v = (struct vm_area_struct *)(vm->vm);
 
@@ -903,16 +903,16 @@ void osal_pgprot_cached(osal_vm_t *vm)
                                | L_PTE_YOUNG | L_PTE_DIRTY | L_PTE_MT_DEV_CACHED);
 #endif
 }
-EXPORT_SYMBOL(osal_pgprot_cached);
+EXPORT_SYMBOL(osa_pgprot_cached);
 
-void osal_pgprot_writecombine(osal_vm_t *vm)
+void osa_pgprot_writecombine(osa_vm_t *vm)
 {
     struct vm_area_struct *v = (struct vm_area_struct *)(vm->vm);
     v->vm_page_prot = pgprot_writecombine(v->vm_page_prot);
 }
-EXPORT_SYMBOL(osal_pgprot_writecombine);
+EXPORT_SYMBOL(osa_pgprot_writecombine);
 
-void osal_pgprot_stronglyordered(osal_vm_t *vm)
+void osa_pgprot_stronglyordered(osa_vm_t *vm)
 {
     struct vm_area_struct *v = (struct vm_area_struct *)(vm->vm);
 
@@ -922,9 +922,9 @@ void osal_pgprot_stronglyordered(osal_vm_t *vm)
     v->vm_page_prot = pgprot_stronglyordered(v->vm_page_prot);
 #endif
 }
-EXPORT_SYMBOL(osal_pgprot_stronglyordered);
+EXPORT_SYMBOL(osa_pgprot_stronglyordered);
 
-int osal_remap_pfn_range(osal_vm_t *vm, unsigned long addr, unsigned long pfn, unsigned long size)
+int osa_remap_pfn_range(osa_vm_t *vm, unsigned long addr, unsigned long pfn, unsigned long size)
 {
     struct vm_area_struct *v = (struct vm_area_struct *)(vm->vm);
     if (size == 0) {
@@ -932,9 +932,9 @@ int osal_remap_pfn_range(osal_vm_t *vm, unsigned long addr, unsigned long pfn, u
     }
     return remap_pfn_range(v, addr, pfn, size, v->vm_page_prot);
 }
-EXPORT_SYMBOL(osal_remap_pfn_range);
+EXPORT_SYMBOL(osa_remap_pfn_range);
 
-int osal_io_remap_pfn_range(osal_vm_t *vm, unsigned long addr, unsigned long pfn, unsigned long size)
+int osa_io_remap_pfn_range(osa_vm_t *vm, unsigned long addr, unsigned long pfn, unsigned long size)
 {
     struct vm_area_struct *v = (struct vm_area_struct *)(vm->vm);
 # if 0 // TODO: vm_flags changed to const type
@@ -945,13 +945,13 @@ int osal_io_remap_pfn_range(osal_vm_t *vm, unsigned long addr, unsigned long pfn
     }
     return io_remap_pfn_range(v, addr, pfn, size, v->vm_page_prot);
 }
-EXPORT_SYMBOL(osal_io_remap_pfn_range);
+EXPORT_SYMBOL(osa_io_remap_pfn_range);
 
 
 #ifdef CONFIG_SNAPSHOT_BOOT
-int osal_call_usermodehelper_force(char *path, char **argv, char **envp, int wait)
+int osa_call_usermodehelper_force(char *path, char **argv, char **envp, int wait)
 {
     return call_usermodehelper_force(path, argv, envp, wait);
 }
-EXPORT_SYMBOL(osal_call_usermodehelper_force);
+EXPORT_SYMBOL(osa_call_usermodehelper_force);
 #endif

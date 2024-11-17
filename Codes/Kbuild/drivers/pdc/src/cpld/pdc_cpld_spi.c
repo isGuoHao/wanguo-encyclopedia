@@ -3,13 +3,13 @@
 #include <linux/init.h>
 #include <linux/spi/spi.h>
 #include <linux/of.h>
-#include "bsp_cpld.h"
+#include "pdc_cpld.h"
 
 static struct spi_device *cpld_spi_client;
 static struct cpld_device cpld_device;
 
-int __init bsp_cpld_spi_init(void);
-void __exit bsp_cpld_spi_exit(void);
+int __init pdc_cpld_spi_init(void);
+void __exit pdc_cpld_spi_exit(void);
 
 static int cpld_spi_read_register(int reg, int *value) {
     // 实现SPI读取寄存器
@@ -93,11 +93,11 @@ static struct spi_driver cpld_spi_driver = {
     .id_table = cpld_spi_id,
 };
 
-int __init bsp_cpld_spi_init(void) {
+int __init pdc_cpld_spi_init(void) {
     return spi_register_driver(&cpld_spi_driver);
 }
 
-void __exit bsp_cpld_spi_exit(void) {
+void __exit pdc_cpld_spi_exit(void) {
     spi_unregister_driver(&cpld_spi_driver);
 }
 

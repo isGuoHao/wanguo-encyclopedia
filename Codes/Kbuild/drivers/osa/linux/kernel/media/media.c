@@ -18,7 +18,7 @@
 #include <linux/devfreq.h>
 
 #include "base.h"
-#include "osal_devfreq.h"
+#include "osa_devfreq.h"
 
 static OSAL_LIST_HEAD(media_list);
 static DEFINE_MUTEX(media_sem);
@@ -53,7 +53,7 @@ int media_devfreq_get_dev_status(struct device *dev, struct devfreq_dev_status *
 {
     struct media_device *pdev = to_media_device(dev);
     struct media_driver *pdrv = to_media_driver(dev->driver);
-    osal_devfreq_dev_status_t pstat;
+    osa_devfreq_dev_status_t pstat;
 
     if ((pdrv->ops == NULL) || (pdrv->ops->devfreq_get_dev_status == NULL)) {
         return 0;
@@ -90,7 +90,7 @@ void media_devfreq_exit(struct device *dev)
     return pdrv->ops->devfreq_exit(pdev);
 }
 
-int media_devfreq_register(struct media_device *media, osal_devfreq_para_t *devfreq_para)
+int media_devfreq_register(struct media_device *media, osa_devfreq_para_t *devfreq_para)
 {
     struct device *dev = (struct device *)&media->device;
     struct devfreq_dev_profile *profile = &(media->profile);
@@ -131,7 +131,7 @@ static int media_open(struct inode *inode, struct file *file)
 
     mutex_lock(&media_sem);
 
-    osal_list_for_each_entry(c, &media_list, list) {
+    osa_list_for_each_entry(c, &media_list, list) {
         if (c->minor == minor) {
             new_fops = fops_get(c->fops);
             break;
@@ -143,7 +143,7 @@ static int media_open(struct inode *inode, struct file *file)
         request_module("char-major-%d-%d", MEDIA_DEVICE_MAJOR, minor);
         mutex_lock(&media_sem);
 
-        osal_list_for_each_entry(c, &media_list, list) {
+        osa_list_for_each_entry(c, &media_list, list) {
             if (c->minor == minor) {
                 new_fops = fops_get(c->fops);
                 break;
@@ -206,7 +206,7 @@ int media_register(struct media_device *media)
     mutex_lock(&media_sem);
 
     /* check if registered */
-    osal_list_for_each_entry(ptmp, &media_list, list) {
+    osa_list_for_each_entry(ptmp, &media_list, list) {
         if (ptmp->minor == media->minor) {
             mutex_unlock(&media_sem);
             return -EBUSY;
@@ -257,7 +257,7 @@ int media_register(struct media_device *media)
      * Add it to the front, so that later devices can "override"
      * earlier defaults
      */
-    osal_list_add(&media->list, &media_list);
+    osa_list_add(&media->list, &media_list);
 
 out:
     mutex_unlock(&media_sem);
@@ -279,16 +279,16 @@ int media_unregister(struct media_device *media)
 {
     struct media_device *ptmp = NULL, *_ptmp = NULL;
 
-    if (osal_list_empty(&media->list)) {
+    if (osa_list_empty(&media->list)) {
         return -EINVAL;
     }
 
     mutex_lock(&media_sem);
 
-    osal_list_for_each_entry_safe(ptmp, _ptmp, &media_list, list) {
+    osa_list_for_each_entry_safe(ptmp, _ptmp, &media_list, list) {
         /* if found, unregister device & driver */
         if (ptmp->minor == media->minor) {
-            osal_list_del(&media->list);
+            osa_list_del(&media->list);
 
             media_driver_unregister(media->driver);
 
@@ -338,7 +338,7 @@ err0:
 void media_exit(void)
 {
     // 0
-    if (!osal_list_empty(&media_list)) {
+    if (!osa_list_empty(&media_list)) {
         printk("!!! Module media: sub module in list\n");
         return;
     }

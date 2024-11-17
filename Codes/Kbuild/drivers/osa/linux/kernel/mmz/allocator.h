@@ -6,7 +6,7 @@
 #define __ALLOCATOR_H__
 
 #include <linux/device.h>
-#include "osal_mmz.h"
+#include "osa_mmz.h"
 
 #define NAME_LEN_MAX 64
 

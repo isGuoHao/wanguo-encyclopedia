@@ -3,13 +3,13 @@
 #include <linux/init.h>
 #include <linux/i2c.h>
 #include <linux/of.h>
-#include "bsp_cpld.h"
+#include "pdc_cpld.h"
 
 static struct i2c_client *cpld_i2c_client;
 static struct cpld_device cpld_device;
 
-int __init bsp_cpld_i2c_init(void);
-void __exit bsp_cpld_i2c_exit(void);
+int __init pdc_cpld_i2c_init(void);
+void __exit pdc_cpld_i2c_exit(void);
 
 static int cpld_i2c_read_register(int reg, int *value) {
     u8 data[2];
@@ -142,11 +142,11 @@ static struct i2c_driver cpld_i2c_driver = {
     .id_table = cpld_i2c_id,
 };
 
-int __init bsp_cpld_i2c_init(void) {
+int __init pdc_cpld_i2c_init(void) {
     return i2c_add_driver(&cpld_i2c_driver);
 }
 
-void __exit bsp_cpld_i2c_exit(void) {
+void __exit pdc_cpld_i2c_exit(void) {
     i2c_del_driver(&cpld_i2c_driver);
 }
 

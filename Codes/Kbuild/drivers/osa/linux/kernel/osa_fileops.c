@@ -1,7 +1,7 @@
 /*
  * Copyright (c) XMEDIA. All rights reserved.
  */
-#include "osal.h"
+#include "osa.h"
 #include <linux/version.h>
 #include <linux/fs.h>
 #include <asm/uaccess.h>
@@ -54,27 +54,27 @@ static int klib_fread(char *buf, unsigned int len, struct file *filp)
 #endif
 }
 
-void *osal_klib_fopen(const char *filename, int flags, int mode)
+void *osa_klib_fopen(const char *filename, int flags, int mode)
 {
     return (void *)klib_fopen(filename, flags, mode);
 }
-EXPORT_SYMBOL(osal_klib_fopen);
+EXPORT_SYMBOL(osa_klib_fopen);
 
-void osal_klib_fclose(void *filp)
+void osa_klib_fclose(void *filp)
 {
     klib_fclose((struct file *)filp);
 }
-EXPORT_SYMBOL(osal_klib_fclose);
+EXPORT_SYMBOL(osa_klib_fclose);
 
-int osal_klib_fwrite(const char *buf, int len, void *filp)
+int osa_klib_fwrite(const char *buf, int len, void *filp)
 {
     return klib_fwrite(buf, len, (struct file *)filp);
 }
-EXPORT_SYMBOL(osal_klib_fwrite);
+EXPORT_SYMBOL(osa_klib_fwrite);
 
-int osal_klib_fread(char *buf, unsigned int len, void *filp)
+int osa_klib_fread(char *buf, unsigned int len, void *filp)
 {
     return klib_fread(buf, len, (struct file *)filp);
 }
-EXPORT_SYMBOL(osal_klib_fread);
+EXPORT_SYMBOL(osa_klib_fread);
 

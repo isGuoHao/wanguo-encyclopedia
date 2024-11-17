@@ -14,16 +14,16 @@
 #include <linux/proc_fs.h>
 #include <linux/fs.h>
 #include <linux/uaccess.h>
-#include "bsp_cpld.h"
-#include "bsp.h"
-#include "bsp_osa.h"
+#include "pdc_cpld.h"
+#include "pdc.h"
+#include "pdc_osa.h"
 
 // 定义设备管理结构体
 struct cpld_private_data {
     struct list_head device_list;
     struct mutex device_lock;
-    struct bsp_cdev_info *cdev_info;
-    struct bsp_proc_info *proc_info;
+    struct pdc_cdev_info *cdev_info;
+    struct pdc_proc_info *proc_info;
 };
 
 static struct cpld_private_data cpld_priv_data;
@@ -128,7 +128,7 @@ static int init_manager(void)
     // 创建字符设备
     cpld_priv_data.cdev_info->devno = 0;
     cpld_priv_data.cdev_info->cdev = NULL;
-    iRet = bsp_create_cdev(cpld_priv_data.cdev_info);
+    iRet = pdc_create_cdev(cpld_priv_data.cdev_info);
     if (iRet) {
         pr_err("Failed to create cdev for CPLD\n");
         return -ENOMEM;
@@ -136,10 +136,10 @@ static int init_manager(void)
 
     // 创建proc文件
     cpld_priv_data.proc_info->proc_file = NULL;
-    iRet = bsp_create_proc(cpld_priv_data.proc_info);
+    iRet = pdc_create_proc(cpld_priv_data.proc_info);
     if (iRet) {
         pr_err("Failed to create proc file for CPLD\n");
-        bsp_unregister_cdev(cpld_priv_data.cdev_info);
+        pdc_unregister_cdev(cpld_priv_data.cdev_info);
         return -ENOMEM;
     }
 
@@ -149,8 +149,8 @@ static int init_manager(void)
 // 清理管理器
 static void cleanup_manager(void) {
 
-    bsp_remove_proc(cpld_priv_data.proc_info);
-    bsp_unregister_cdev(cpld_priv_data.cdev_info);
+    pdc_remove_proc(cpld_priv_data.proc_info);
+    pdc_unregister_cdev(cpld_priv_data.cdev_info);
 
     kfree(cpld_priv_data.cdev_info->name);
     kfree(cpld_priv_data.proc_info->name);
@@ -188,7 +188,7 @@ void cpld_unregister(struct cpld_device *cpld_dev) {
 }
 
 // 模块初始化
-int bsp_cpld_init(void) {
+int pdc_cpld_init(void) {
     int ret;
 
     ret = init_manager();
@@ -203,7 +203,7 @@ int bsp_cpld_init(void) {
 }
 
 // 模块退出
-void bsp_cpld_exit(void) {
+void pdc_cpld_exit(void) {
     pr_info("CPLD driver unregistered\n");
     cleanup_manager();
 }

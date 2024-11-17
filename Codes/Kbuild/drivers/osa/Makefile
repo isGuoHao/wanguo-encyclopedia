@@ -1,28 +1,28 @@
 obj-m := $(TARGET).o
 
-$(TARGET)-objs := 	linux/kernel/osal_fileops.o \
-					linux/kernel/osal_vmalloc.o \
-					linux/kernel/osal_addr.o \
-					linux/kernel/osal_init.o \
-					linux/kernel/osal_atomic.o \
-					linux/kernel/osal_barrier.o \
-					linux/kernel/osal_cache.o \
-					linux/kernel/osal_debug.o \
-					linux/kernel/osal_device.o \
-					linux/kernel/osal_interrupt.o \
-					linux/kernel/osal_math.o \
-					linux/kernel/osal_mutex.o \
-					linux/kernel/osal_proc.o \
-					linux/kernel/osal_schedule.o \
-					linux/kernel/osal_semaphore.o \
-					linux/kernel/osal_spinlock.o \
-					linux/kernel/osal_string.o \
-					linux/kernel/osal_task.o \
-					linux/kernel/osal_timer.o \
-					linux/kernel/osal_wait.o \
-					linux/kernel/osal_workqueue.o \
-					linux/kernel/osal_notifier.o \
-					linux/kernel/osal_platform.o
+$(TARGET)-objs := 	linux/kernel/osa_fileops.o \
+					linux/kernel/osa_vmalloc.o \
+					linux/kernel/osa_addr.o \
+					linux/kernel/osa_init.o \
+					linux/kernel/osa_atomic.o \
+					linux/kernel/osa_barrier.o \
+					linux/kernel/osa_cache.o \
+					linux/kernel/osa_debug.o \
+					linux/kernel/osa_device.o \
+					linux/kernel/osa_interrupt.o \
+					linux/kernel/osa_math.o \
+					linux/kernel/osa_mutex.o \
+					linux/kernel/osa_proc.o \
+					linux/kernel/osa_schedule.o \
+					linux/kernel/osa_semaphore.o \
+					linux/kernel/osa_spinlock.o \
+					linux/kernel/osa_string.o \
+					linux/kernel/osa_task.o \
+					linux/kernel/osa_timer.o \
+					linux/kernel/osa_wait.o \
+					linux/kernel/osa_workqueue.o \
+					linux/kernel/osa_notifier.o \
+					linux/kernel/osa_platform.o
 
 $(TARGET)-objs +=   linux/kernel/media/base.o \
 					linux/kernel/media/media.o

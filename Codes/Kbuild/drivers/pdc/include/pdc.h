@@ -23,7 +23,7 @@ struct device_ops {
     int (*deinit)(void);    // 反初始化函数指针
 };
 
-struct bsp_driver {
+struct pdc_driver {
     int (*init)(void);
     void (*exit)(void);
     struct list_head list;           // 保存已经注册的驱动信息
