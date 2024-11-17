@@ -1,6 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
 #include "osa.h"
 #include <linux/version.h>
 #include <linux/fs.h>

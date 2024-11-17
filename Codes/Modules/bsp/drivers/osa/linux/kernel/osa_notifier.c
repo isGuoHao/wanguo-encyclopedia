@@ -1,7 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
-
 #include <linux/notifier.h>
 #include <linux/slab.h>
 #include <linux/reboot.h>

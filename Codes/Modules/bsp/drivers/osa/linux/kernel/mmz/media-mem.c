@@ -1,7 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
-
 #include <generated/autoconf.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -57,7 +53,7 @@ void __exit media_mem_exit(void);
 
 #define MMZ_SETUP_CMDLINE_LEN     256
 #define MMZ_ALLOCATOR_NAME_LEN    32
-#define MMZ_DEFAULT_ALLOCATOR     "xmedia"
+#define MMZ_DEFAULT_ALLOCATOR     "bsp"
 #ifndef MODULE
 
 static char setup_zones[MMZ_SETUP_CMDLINE_LEN] = {'\0'};
@@ -192,7 +188,7 @@ int mmz_mmz_register(mmz_mmz_t *zone)
 
     down(&mmz_lock);
 
-    if (0 == strcmp(setup_allocator, "xmedia")) {
+    if (0 == strcmp(setup_allocator, "bsp")) {
         ret = _check_mmz(zone);
         if (ret) {
             up(&mmz_lock);
@@ -868,10 +864,10 @@ int __init media_mem_init(void)
         pr_err("cma is not enabled in kernel, please check!\n");
         return -EINVAL;
 #endif
-    } else if (strcmp(setup_allocator, "xmedia") == 0) {
+    } else if (strcmp(setup_allocator, "bsp") == 0) {
         ret = allocator_setopt(&the_allocator);
     } else {
-        printk("The module param \"setup_allocator\" should be \"cma\" or \"xmedia\", which is \"%s\"\n",
+        printk("The module param \"setup_allocator\" should be \"cma\" or \"bsp\", which is \"%s\"\n",
                 setup_allocator);
         mmz_exit_check();
         return -EINVAL;

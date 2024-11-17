@@ -1,7 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
-
 #include <linux/fs.h>
 #include <linux/slab.h>
 #include <linux/init.h>

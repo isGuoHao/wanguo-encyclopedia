@@ -1,6 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
 #ifndef __MMZ_ARCH_OPS_HEADER__
 #define __MMZ_ARCH_OPS_HEADER__
 

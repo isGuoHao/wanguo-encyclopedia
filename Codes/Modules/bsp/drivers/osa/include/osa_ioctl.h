@@ -1,6 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
 #ifndef _DRV_IOCTL_H
 #define _DRV_IOCTL_H
 

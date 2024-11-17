@@ -1,6 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
 #include <linux/module.h>
 #include <linux/kernel.h>
 // #include <asm/div64.h>

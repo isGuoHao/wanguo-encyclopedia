@@ -1,6 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
 #ifndef _MEDIA_BASE_H_
 #define _MEDIA_BASE_H_
 

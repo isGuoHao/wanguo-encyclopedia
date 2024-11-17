@@ -1,6 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
 #include <linux/workqueue.h>
 #include <linux/slab.h>
 #include <linux/module.h>

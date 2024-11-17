@@ -1,7 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
-
 #include <linux/kernel.h>
 #include <linux/version.h>
 #include <linux/module.h>

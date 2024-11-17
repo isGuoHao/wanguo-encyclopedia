@@ -1,6 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
 #ifndef _LINUX_MEDIA_DEVICE_H_
 #define _LINUX_MEDIA_DEVICE_H_
 

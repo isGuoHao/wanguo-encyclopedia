@@ -1,6 +1,3 @@
-/*
- * Copyright (c) XMEDIA. All rights reserved.
- */
 #ifndef _OSA_MMZ_H
 #define _OSA_MMZ_H
 
