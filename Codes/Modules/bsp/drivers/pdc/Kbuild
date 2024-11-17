@@ -1,2 +1,16 @@
-# 引用子目录中的 Makefile
-obj-m += src/
+# 指定要编译的目标模块
+MODULE_NAME := pdc
+obj-m := $(MODULE_NAME).o
+
+# 定义要编译的目标模块对象文件
+$(MODULE_NAME)-objs := 	src/cpld/pdc_cpld.o \
+				src/cpld/pdc_cpld_i2c.o \
+				src/cpld/pdc_cpld_spi.o \
+				src/led/pdc_led.o \
+				src/led/pdc_led_gpio.o \
+				src/led/pdc_led_pwm.o \
+				src/osa/pdc_osa.o
+
+
+# 添加头文件路径
+ccflags-y += 	-I$(src)/include

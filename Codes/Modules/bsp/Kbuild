@@ -1,4 +1,0 @@
-# 引用子目录中的 Kbuild 文件
-obj-m += drivers/osa/
-obj-m += drivers/prc/
-obj-m += drivers/pdc/
