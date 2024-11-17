@@ -20,7 +20,7 @@
 #include "base.h"
 #include "osa_devfreq.h"
 
-static OSAL_LIST_HEAD(media_list);
+static OSA_LIST_HEAD(media_list);
 static DEFINE_MUTEX(media_sem);
 
 int media_devfreq_target(struct device *dev, unsigned long *freq, unsigned int flags);

@@ -19,7 +19,7 @@ static int __init osa_init(void)
     osa_proc_init();
     media_init();
     media_mem_init();
-    osa_printk("osa %s init success!\n", OSAL_VERSION);
+    osa_printk("osa %s init success!\n", OSA_VERSION);
     return 0;
 }
 

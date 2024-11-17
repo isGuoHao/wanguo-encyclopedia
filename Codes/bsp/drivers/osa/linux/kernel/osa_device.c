@@ -161,15 +161,15 @@ static loff_t osa_llseek(struct file *file, loff_t offset, int whence)
 
     if (whence == SEEK_SET) {
         if (pdata->dev->fops->llseek != NULL) {
-            ret = pdata->dev->fops->llseek((long)offset, OSAL_SEEK_SET, (void *)&(pdata->data));
+            ret = pdata->dev->fops->llseek((long)offset, OSA_SEEK_SET, (void *)&(pdata->data));
         }
     } else if (whence == SEEK_CUR) {
         if (pdata->dev->fops->llseek != NULL) {
-            ret = pdata->dev->fops->llseek((long)offset, OSAL_SEEK_CUR, (void *)&(pdata->data));
+            ret = pdata->dev->fops->llseek((long)offset, OSA_SEEK_CUR, (void *)&(pdata->data));
         }
     } else if (whence == SEEK_END) {
         if (pdata->dev->fops->llseek != NULL) {
-            ret = pdata->dev->fops->llseek((long)offset, OSAL_SEEK_END, (void *)&(pdata->data));
+            ret = pdata->dev->fops->llseek((long)offset, OSA_SEEK_END, (void *)&(pdata->data));
         }
     }
 

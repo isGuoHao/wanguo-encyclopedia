@@ -1,10 +1,10 @@
 /*
  * Copyright (c) XMEDIA. All rights reserved.
  */
-#ifndef _OSAL_LIST_H
-#define _OSAL_LIST_H
+#ifndef _OSA_LIST_H
+#define _OSA_LIST_H
 
-#define OSAL_NULL            (0)
+#define OSA_NULL            (0)
 
 /*
  * Simple doubly linked list implementation.
@@ -20,15 +20,15 @@ struct osa_list_head {
     struct osa_list_head *next, *prev;
 };
 
-#define OSAL_LIST_HEAD_INIT(name) \
+#define OSA_LIST_HEAD_INIT(name) \
     {                             \
         &(name), &(name)          \
     }
 
-#define OSAL_LIST_HEAD(name) \
-    struct osa_list_head name = OSAL_LIST_HEAD_INIT(name)
+#define OSA_LIST_HEAD(name) \
+    struct osa_list_head name = OSA_LIST_HEAD_INIT(name)
 
-static inline void OSAL_INIT_LIST_HEAD(struct osa_list_head *list)
+static inline void OSA_INIT_LIST_HEAD(struct osa_list_head *list)
 {
     list->next = list;
     list->prev = list;
@@ -100,14 +100,14 @@ static inline void osa___list_del_entry(struct osa_list_head *entry)
     osa___list_del(entry->prev, entry->next);
 }
 
-#define OSAL_LIST_POISON1    ((void *)0x00100100)
-#define OSAL_LIST_POISON2    ((void *)0x00200200)
+#define OSA_LIST_POISON1    ((void *)0x00100100)
+#define OSA_LIST_POISON2    ((void *)0x00200200)
 
 static inline void osa_list_del(struct osa_list_head *entry)
 {
     osa___list_del(entry->prev, entry->next);
-    entry->next = OSAL_LIST_POISON1;
-    entry->prev = OSAL_LIST_POISON2;
+    entry->next = OSA_LIST_POISON1;
+    entry->prev = OSA_LIST_POISON2;
 }
 
 /**
@@ -130,7 +130,7 @@ static inline void osa_list_replace_init(struct osa_list_head *old,
                                           struct osa_list_head *new)
 {
     osa_list_replace(old, new);
-    OSAL_INIT_LIST_HEAD(old);
+    OSA_INIT_LIST_HEAD(old);
 }
 
 /**
@@ -140,7 +140,7 @@ static inline void osa_list_replace_init(struct osa_list_head *old,
 static inline void osa_list_del_init(struct osa_list_head *entry)
 {
     osa___list_del_entry(entry);
-    OSAL_INIT_LIST_HEAD(entry);
+    OSA_INIT_LIST_HEAD(entry);
 }
 
 /**
@@ -265,7 +265,7 @@ static inline void osa_list_cut_position(struct osa_list_head *list,
         return;
     }
     if (entry == head) {
-        OSAL_INIT_LIST_HEAD(list);
+        OSA_INIT_LIST_HEAD(list);
     } else {
         osa___list_cut_position(list, head, entry);
     }
@@ -323,7 +323,7 @@ static inline void osa_list_splice_init(struct osa_list_head *list,
 {
     if (!osa_list_empty(list)) {
         osa___list_splice(list, head, head->next);
-        OSAL_INIT_LIST_HEAD(list);
+        OSA_INIT_LIST_HEAD(list);
     }
 }
 
@@ -340,7 +340,7 @@ static inline void osa_list_splice_tail_init(struct osa_list_head *list,
 {
     if (!osa_list_empty(list)) {
         osa___list_splice(list, head->prev, head);
-        OSAL_INIT_LIST_HEAD(list);
+        OSA_INIT_LIST_HEAD(list);
     }
 }
 
@@ -584,16 +584,16 @@ struct osa_hlist_head {
     struct osa_hlist_node *first;
 };
 
-#define OSAL_HLIST_HEAD_INIT \
+#define OSA_HLIST_HEAD_INIT \
     {                        \
-        .first = OSAL_NULL   \
+        .first = OSA_NULL   \
     }
-#define OSAL_HLIST_HEAD(name) struct osa_hlist_head name = { .first = OSAL_NULL }
-#define INIT_OSAL_HLIST_HEAD(ptr) ((ptr)->first = OSAL_NULL)
-static inline void INIT_OSAL_HLIST_NODE(struct osa_hlist_node *h)
+#define OSA_HLIST_HEAD(name) struct osa_hlist_head name = { .first = OSA_NULL }
+#define INIT_OSA_HLIST_HEAD(ptr) ((ptr)->first = OSA_NULL)
+static inline void INIT_OSA_HLIST_NODE(struct osa_hlist_node *h)
 {
-    h->next = OSAL_NULL;
-    h->pprev = OSAL_NULL;
+    h->next = OSA_NULL;
+    h->pprev = OSA_NULL;
 }
 
 static inline int osa_hlist_unhashed(const struct osa_hlist_node *h)
@@ -619,15 +619,15 @@ static inline void osa___hlist_del(struct osa_hlist_node *n)
 static inline void osa_hlist_del(struct osa_hlist_node *n)
 {
     osa___hlist_del(n);
-    n->next = OSAL_LIST_POISON1;
-    n->pprev = OSAL_LIST_POISON2;
+    n->next = OSA_LIST_POISON1;
+    n->pprev = OSA_LIST_POISON2;
 }
 
 static inline void osa_hlist_del_init(struct osa_hlist_node *n)
 {
     if (!osa_hlist_unhashed(n)) {
         osa___hlist_del(n);
-        INIT_OSAL_HLIST_NODE(n);
+        INIT_OSA_HLIST_NODE(n);
     }
 }
 
@@ -681,7 +681,7 @@ static inline void osa_hlist_move_list(struct osa_hlist_head *old,
     if (new->first) {
         new->first->pprev = &new->first;
     }
-    old->first = OSAL_NULL;
+    old->first = OSA_NULL;
 }
 
 #define osa_hlist_entry(ptr, type, member) osa_container_of(ptr, type, member)

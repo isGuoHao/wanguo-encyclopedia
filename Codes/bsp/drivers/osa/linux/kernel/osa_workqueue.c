@@ -6,7 +6,7 @@
 #include <linux/module.h>
 #include "osa.h"
 
-OSAL_LIST_HEAD(wq_list);
+OSA_LIST_HEAD(wq_list);
 struct wq_node {
     struct osa_work_struct *osa_work;
     struct work_struct *work;

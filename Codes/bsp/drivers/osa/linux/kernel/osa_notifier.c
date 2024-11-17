@@ -8,7 +8,7 @@
 #include <linux/module.h>
 #include "osa.h"
 
-OSAL_LIST_HEAD(nb_list);
+OSA_LIST_HEAD(nb_list);
 
 struct nb_node {
     struct osa_notifier_block *osa_nb;

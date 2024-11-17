@@ -39,7 +39,7 @@
 #include "allocator.h"
 
 
-OSAL_LIST_HEAD(mmz_list);
+OSA_LIST_HEAD(mmz_list);
 
 // TODO: add one int arg
 static DEFINE_SEMAPHORE(mmz_lock, 1);
@@ -114,8 +114,8 @@ mmz_mmz_t *mmz_mmz_create(const char *name,
     p->phys_start = phys_start;
     p->nbytes = nbytes;
 
-    OSAL_INIT_LIST_HEAD(&p->list);
-    OSAL_INIT_LIST_HEAD(&p->mmb_list);
+    OSA_INIT_LIST_HEAD(&p->list);
+    OSA_INIT_LIST_HEAD(&p->mmb_list);
 
     p->destructor = kfree;
 
@@ -200,7 +200,7 @@ int mmz_mmz_register(mmz_mmz_t *zone)
         }
     }
 
-    OSAL_INIT_LIST_HEAD(&zone->mmb_list);
+    OSA_INIT_LIST_HEAD(&zone->mmb_list);
 
     osa_list_add(&zone->list, &mmz_list);
 

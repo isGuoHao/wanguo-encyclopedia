@@ -140,7 +140,7 @@ static int mmz_userdev_open(struct inode *inode, struct file *file)
     pmu->pid = current->pid;
     pmu->mmap_pid = 0;
     sema_init(&pmu->sem, 1);
-    OSAL_INIT_LIST_HEAD(&pmu->list);
+    OSA_INIT_LIST_HEAD(&pmu->list);
 
     /* This file could be opened just for once */
     file->private_data = (void *)pmu;

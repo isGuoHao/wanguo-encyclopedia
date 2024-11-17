@@ -1,8 +1,8 @@
 /*
  * Copyright (c) XMEDIA. All rights reserved.
  */
-#ifndef __OSAL_DEVFREQ__H
-#define __OSAL_DEVFREQ__H
+#ifndef __OSA_DEVFREQ__H
+#define __OSA_DEVFREQ__H
 
 typedef struct osa_devfreq_dev_status {
     /* both since the last measure */
@@ -19,4 +19,4 @@ typedef struct osa_devfreq_para {
     unsigned int max_state;
 } osa_devfreq_para_t;
 
-#endif /* __OSAL_DEVFREQ__H */
+#endif /* __OSA_DEVFREQ__H */

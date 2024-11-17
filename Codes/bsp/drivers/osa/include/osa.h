@@ -1,10 +1,10 @@
 /*
  * Copyright (c) XMEDIA. All rights reserved.
  */
-#ifndef __OSAL__
-#define __OSAL__
+#ifndef __OSA__
+#define __OSA__
 
-#define OSAL_VERSION    "1.0"
+#define OSA_VERSION    "1.0"
 
 #include "osa_list.h"
 #include "osa_devfreq.h"
@@ -21,7 +21,7 @@ typedef struct {
     void *atomic;
 } osa_atomic_t;
 
-#define OSAL_ATOMIC_INIT(i)  { (i) }
+#define OSA_ATOMIC_INIT(i)  { (i) }
 
 extern int osa_atomic_init(osa_atomic_t *atomic);
 extern void osa_atomic_destory(osa_atomic_t *atomic);
@@ -169,7 +169,7 @@ typedef void (*osa_work_func_t)(struct osa_work_struct *work);
 
 extern int osa_init_work(struct osa_work_struct *work, osa_work_func_t func);
 
-#define OSAL_INIT_WORK(_work, _func)      \
+#define OSA_INIT_WORK(_work, _func)      \
     do {                                  \
         osa_init_work((_work), (_func)); \
     } while (0)
@@ -182,9 +182,9 @@ extern void osa_yield(void);
 
 // interrupt api
 enum osa_irqreturn {
-    OSAL_IRQ_NONE = (0 << 0),
-    OSAL_IRQ_HANDLED = (1 << 0),
-    OSAL_IRQ_WAKE_THREAD = (1 << 1),
+    OSA_IRQ_NONE = (0 << 0),
+    OSA_IRQ_HANDLED = (1 << 0),
+    OSA_IRQ_WAKE_THREAD = (1 << 1),
 };
 
 typedef int (*osa_irq_handler_t)(int, void *);
@@ -193,7 +193,7 @@ extern int osa_request_irq(unsigned int irq, osa_irq_handler_t handler, osa_irq_
 extern void osa_free_irq(unsigned int irq, void *dev);
 extern int osa_in_interrupt(void);
 
-#define OSAL_DIS_IRQ_CNT   2
+#define OSA_DIS_IRQ_CNT   2
 typedef void (*osa_gic_handle_t)(unsigned int, unsigned int, void *);
 extern int osa_register_gic_handle(unsigned int index, unsigned int irq, osa_gic_handle_t handle, const char *name,
                                     void *dev);
@@ -261,8 +261,8 @@ extern void osa_iounmap(void *addr);
 extern unsigned long osa_copy_from_user(void *to, const void *from, unsigned long n);
 extern unsigned long osa_copy_to_user(void *to, const void *from, unsigned long n);
 
-#define OSAL_VERIFY_READ   0
-#define OSAL_VERIFY_WRITE  1
+#define OSA_VERIFY_READ   0
+#define OSA_VERIFY_WRITE  1
 extern int osa_access_ok(int type, const void *addr, unsigned long size);
 
 // cache api
@@ -320,25 +320,25 @@ extern void osa_dmb(void);
 // debug
 extern int osa_printk(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 extern void osa_panic(const char *fmt, const char *fun, int line, const char *);
-#define OSAL_BUG() \
+#define OSA_BUG() \
     do {           \
     } while (1)
 
-#define OSAL_ASSERT(expr)                       \
+#define OSA_ASSERT(expr)                       \
     do {                                        \
         if (!(expr)) {                          \
             osa_printk("\nASSERT failed at:\n" \
                         "  >Condition: %s\n",   \
                 #expr);                         \
-            OSAL_BUG();                         \
+            OSA_BUG();                         \
         }                                       \
     } while (0)
 
-#define OSAL_BUG_ON(expr)                                                               \
+#define OSA_BUG_ON(expr)                                                               \
     do {                                                                                \
         if (expr) {                                                                     \
             osa_printk("BUG: failure at %d/%s()!\n", __LINE__, __func__); \
-            OSAL_BUG();                                                                 \
+            OSA_BUG();                                                                 \
         }                                                                               \
     } while (0)
 
@@ -390,15 +390,15 @@ typedef struct osa_vm {
     void *vm;
 } osa_vm_t;
 
-#define OSAL_POLLIN        0x0001
-#define OSAL_POLLPRI       0x0002
-#define OSAL_POLLOUT       0x0004
-#define OSAL_POLLERR       0x0008
-#define OSAL_POLLHUP       0x0010
-#define OSAL_POLLNVAL      0x0020
-#define OSAL_POLLRDNORM    0x0040
-#define OSAL_POLLRDBAND    0x0080
-#define OSAL_POLLWRNORM    0x0100
+#define OSA_POLLIN        0x0001
+#define OSA_POLLPRI       0x0002
+#define OSA_POLLOUT       0x0004
+#define OSA_POLLERR       0x0008
+#define OSA_POLLHUP       0x0010
+#define OSA_POLLNVAL      0x0020
+#define OSA_POLLRDNORM    0x0040
+#define OSA_POLLRDBAND    0x0080
+#define OSA_POLLWRNORM    0x0100
 
 typedef struct osa_poll {
     void *poll_table;
@@ -442,9 +442,9 @@ typedef struct osa_pmops {
     int (*pm_restore_noirq)(osa_dev_t *dev);
 } osa_pmops_t;
 
-#define OSAL_SEEK_SET      0
-#define OSAL_SEEK_CUR      1
-#define OSAL_SEEK_END      2
+#define OSA_SEEK_SET      0
+#define OSA_SEEK_CUR      1
+#define OSA_SEEK_END      2
 
 // #define PAGE_SHIFT         12
 
@@ -489,15 +489,15 @@ typedef struct osa_rtc_time {
 } osa_rtc_time_t;
 
 /* Return values for the timer callback function */
-typedef enum OSAL_HRTIMER_RESTART_E {
-    OSAL_HRTIMER_NORESTART, /* < The timer will not be restarted. */
-    OSAL_HRTIMER_RESTART /* < The timer must be restarted. */
-} OSAL_HRTIMER_RESTART_E;
+typedef enum OSA_HRTIMER_RESTART_E {
+    OSA_HRTIMER_NORESTART, /* < The timer will not be restarted. */
+    OSA_HRTIMER_RESTART /* < The timer must be restarted. */
+} OSA_HRTIMER_RESTART_E;
 
 /* hrtimer struct */
 typedef struct osa_hrtimer {
     void *timer;
-    OSAL_HRTIMER_RESTART_E (*function)(void *timer);
+    OSA_HRTIMER_RESTART_E (*function)(void *timer);
     unsigned long interval; /* Unit ms */
 } osa_hrtimer_t;
 
@@ -523,11 +523,11 @@ extern void osa_rtc_tm_to_time(osa_rtc_time_t *tm, unsigned long *time);
 extern int osa_rtc_valid_tm(struct osa_rtc_time *tm);
 extern void osa_getjiffies(unsigned long long *pjiffies);
 
-#define OSAL_O_ACCMODE     00000003
-#define OSAL_O_RDONLY      00000000
-#define OSAL_O_WRONLY      00000001
-#define OSAL_O_RDWR        00000002
-#define OSAL_O_CREAT       00000100
+#define OSA_O_ACCMODE     00000003
+#define OSA_O_RDONLY      00000000
+#define OSA_O_WRONLY      00000001
+#define OSA_O_RDWR        00000002
+#define OSA_O_CREAT       00000100
 
 extern void *osa_klib_fopen(const char *filename, int flags, int mode);
 extern void osa_klib_fclose(void *filp);
@@ -546,9 +546,9 @@ extern int osa_unregister_reboot_notifier(struct osa_notifier_block *nb);
 
 #include <linux/stdarg.h>
 
-#ifndef _OSAL_VA_LIST
+#ifndef _OSA_VA_LIST
 
-#define _OSAL_VA_LIST
+#define _OSA_VA_LIST
 #define osa_va_list       va_list
 #define osa_va_arg(ap, T) va_arg(ap, T)
 #define osa_va_end(ap) va_end(ap)
@@ -563,8 +563,8 @@ extern int osa_vsnprintf(char *str, int size, const char *fmt, osa_va_list args)
 
 #ifdef CONFIG_SNAPSHOT_BOOT
 
-#ifndef OSAL_UMH_WAIT_PROC
-#define OSAL_UMH_WAIT_PROC 2 /* wait for the process to complete */
+#ifndef OSA_UMH_WAIT_PROC
+#define OSA_UMH_WAIT_PROC 2 /* wait for the process to complete */
 #endif
 
 extern int osa_call_usermodehelper_force(char *path, char **argv, char **envp, int wait);

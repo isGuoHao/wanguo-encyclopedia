@@ -1,8 +1,8 @@
 /*
  * Copyright (c) XMEDIA. All rights reserved.
  */
-#ifndef __OSAL_USER__
-#define __OSAL_USER__
+#ifndef __OSA_USER__
+#define __OSA_USER__
 
 #ifndef PROT_READ
 #define PROT_READ

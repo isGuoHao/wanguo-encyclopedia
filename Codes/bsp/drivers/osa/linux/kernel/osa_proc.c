@@ -13,7 +13,7 @@
 
 #include "osa.h"
 
-#define OSAL_PROC_DEBUG 0
+#define OSA_PROC_DEBUG 0
 
 static struct osa_list_head list;
 static osa_proc_entry_t *proc_entry = NULL;
@@ -309,14 +309,14 @@ EXPORT_SYMBOL(osa_seq_printf);
 
 void osa_proc_init(void)
 {
-    OSAL_INIT_LIST_HEAD(&list);
-    proc_entry = osa_proc_mkdir("umap", OSAL_NULL);
-    if (proc_entry == OSAL_NULL) {
+    OSA_INIT_LIST_HEAD(&list);
+    proc_entry = osa_proc_mkdir("umap", OSA_NULL);
+    if (proc_entry == OSA_NULL) {
         osa_printk("test init, proc mkdir error!\n");
     }
 }
 void osa_proc_exit(void)
 {
-    osa_remove_proc_root("umap", OSAL_NULL);
+    osa_remove_proc_root("umap", OSA_NULL);
 }
 

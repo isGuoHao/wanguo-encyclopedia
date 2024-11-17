@@ -1,8 +1,8 @@
 /*
  * Copyright (c) XMEDIA. All rights reserved.
  */
-#ifndef _OSAL_MMZ_H
-#define _OSAL_MMZ_H
+#ifndef _OSA_MMZ_H
+#define _OSA_MMZ_H
 
 #include "osa.h"
 
@@ -57,11 +57,11 @@ struct mmz_media_memory_block {
 };
 typedef struct mmz_media_memory_block mmz_mmb_t;
 
-#define mmz_mmb_kvirt(p) ({mmz_mmb_t *__mmb=(p); OSAL_BUG_ON(__mmb==NULL); __mmb->kvirt; })
-#define mmz_mmb_phys(p) ({mmz_mmb_t *__mmb=(p); OSAL_BUG_ON(__mmb==NULL); __mmb->phys_addr; })
-#define mmz_mmb_length(p) ({mmz_mmb_t *__mmb=(p); OSAL_BUG_ON(__mmb==NULL); __mmb->length; })
-#define mmz_mmb_name(p) ({mmz_mmb_t *__mmb=(p); OSAL_BUG_ON(__mmb==NULL); __mmb->name; })
-#define mmz_mmb_zone(p) ({mmz_mmb_t *__mmb=(p); OSAL_BUG_ON(__mmb==NULL); __mmb->zone; })
+#define mmz_mmb_kvirt(p) ({mmz_mmb_t *__mmb=(p); OSA_BUG_ON(__mmb==NULL); __mmb->kvirt; })
+#define mmz_mmb_phys(p) ({mmz_mmb_t *__mmb=(p); OSA_BUG_ON(__mmb==NULL); __mmb->phys_addr; })
+#define mmz_mmb_length(p) ({mmz_mmb_t *__mmb=(p); OSA_BUG_ON(__mmb==NULL); __mmb->length; })
+#define mmz_mmb_name(p) ({mmz_mmb_t *__mmb=(p); OSA_BUG_ON(__mmb==NULL); __mmb->name; })
+#define mmz_mmb_zone(p) ({mmz_mmb_t *__mmb=(p); OSA_BUG_ON(__mmb==NULL); __mmb->zone; })
 
 #define MMZ_MMB_MAP2KERN           (1 << 0)
 #define MMZ_MMB_MAP2KERN_CACHED    (1 << 1)
