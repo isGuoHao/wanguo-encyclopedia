@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # 定义要替换的关键字
-old_keyword="bsp"
-new_keyword="pdc"
+old_keyword="$1"
+new_keyword="$2"
 
 # 使用find命令查找当前目录下所有包含旧关键字的文件和文件夹
 # -depth选项确保先处理子文件夹中的项目
