@@ -13,8 +13,9 @@
 #include <linux/kmod.h>
 #include <linux/devfreq.h>
 #include "media.h"
+
 #include "osa.h"
-#include "osa_devfreq.h"
+
 
 #define DRVAL_DEBUG    0
 

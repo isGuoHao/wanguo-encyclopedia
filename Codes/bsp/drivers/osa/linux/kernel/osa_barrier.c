@@ -1,10 +1,10 @@
 /*
  * Copyright (c) XMEDIA. All rights reserved.
  */
-#include "osa.h"
 #include <linux/module.h>
 #include <linux/kernel.h>
-#include <asm/barrier.h>
+
+#include "osa.h"
 
 void osa_mb(void)
 {
