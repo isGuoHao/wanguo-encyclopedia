@@ -1,2 +1,2 @@
 # 定义要编译的目标模块
-obj-m := pdc.o
+obj-m := prc.o
