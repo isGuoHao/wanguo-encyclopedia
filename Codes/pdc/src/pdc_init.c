@@ -16,9 +16,12 @@ struct pdc_private_data {
 static struct pdc_private_data *pdc_private_data_instance;
 
 static struct pdc_subdriver sub_drivers[] = {
+    /* CPLD master and device driver */
     { .init = pdc_cpld_master_init, .exit = pdc_cpld_master_exit },
-    { .init = pdc_lcd_master_init, .exit = pdc_lcd_master_exit },
     { .init = pdc_cpld_i2c_driver_init, .exit = pdc_cpld_i2c_driver_exit },
+
+    /* LCD master and device driver */
+    { .init = pdc_lcd_master_init, .exit = pdc_lcd_master_exit },
     { .init = pdc_lcd_i2c_driver_init, .exit = pdc_lcd_i2c_driver_exit },
     {}
 };
