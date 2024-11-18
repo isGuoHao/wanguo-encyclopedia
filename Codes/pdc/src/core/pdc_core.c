@@ -4,22 +4,32 @@
 #include <linux/slab.h>
 #include <linux/list.h>
 #include <linux/idr.h>
+#include <linux/version.h>
+
 #include "pdc.h"
 
 
-static int pdc_bus_match(struct device *dev, const struct device_driver *drv);
-
 static struct pdc_bus pdc_bus_instance;
-
-struct bus_type pdc_bus_type = {
-    .name = "pdc",
-    .match = pdc_bus_match,
-};
 
 struct device_type pdc_device_type = {
     .name = "pdc_device",
 };
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 7, 0)
+static int pdc_bus_match(struct device *dev, const struct device_driver *drv) {
+#else
+static int pdc_bus_match(struct device *dev, struct device_driver *drv) {
+#endif
+    struct pdc_device *pdc_dev = to_pdc_device(dev);
+    struct pdc_driver *pdc_drv = to_pdc_driver(drv);
+
+    return pdc_drv->probe(pdc_dev) == 0;
+}
+
+struct bus_type pdc_bus_type = {
+    .name = "pdc",
+    .match = pdc_bus_match,
+};
 
 static int pdc_driver_probe(struct device *dev) {
     struct pdc_device *pdc_dev = to_pdc_device(dev);
@@ -133,7 +143,7 @@ int pdc_master_register(struct pdc_master *master) {
 
     ret = device_register(&master->base.dev);
     if (ret) {
-        printk(KERN_ERR "Failed to register PDC master device\n");
+        printk(KERN_ERR "Failed to register PDC master device, ret: %d\n", ret);
         return ret;
     }
 
@@ -147,13 +157,6 @@ void pdc_master_unregister(struct pdc_master *master) {
         list_del(&master->node);
         device_unregister(&master->base.dev);
     }
-}
-
-static int pdc_bus_match(struct device *dev, const struct device_driver *drv) {
-    struct pdc_device *pdc_dev = to_pdc_device(dev);
-    struct pdc_driver *pdc_drv = to_pdc_driver(drv);
-
-    return pdc_drv->probe(pdc_dev) == 0;
 }
 
 

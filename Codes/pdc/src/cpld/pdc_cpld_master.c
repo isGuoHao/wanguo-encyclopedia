@@ -76,6 +76,7 @@ int pdc_cpld_master_init(void) {
 
     ret = pdc_master_alloc(&pdc_cpld_master, "pdc_cpld");
     if (ret) {
+        printk(KERN_ERR "[WANGUO] (%s:%d) \n", __func__, __LINE__);
         return ret;
     }
 
@@ -85,6 +86,7 @@ int pdc_cpld_master_init(void) {
     // Register the master
     ret = pdc_master_register(pdc_cpld_master);
     if (ret) {
+        printk(KERN_ERR "[WANGUO] (%s:%d) \n", __func__, __LINE__);
         pdc_master_free(pdc_cpld_master);
         return ret;
     }

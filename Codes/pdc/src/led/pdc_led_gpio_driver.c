@@ -52,7 +52,7 @@ static int pdc_led_gpio_probe(struct platform_device *pdev) {
     return 0;
 }
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0)
 static int pdc_led_gpio_remove(struct platform_device *pdev) {
 #else
 static void pdc_led_gpio_remove(struct platform_device *pdev) {
@@ -64,7 +64,7 @@ static void pdc_led_gpio_remove(struct platform_device *pdev) {
     pdc_led_device_unregister(led_dev);
     pdc_led_device_free(led_dev);
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0)
     return 0;
 #endif
 }
