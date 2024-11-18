@@ -14,6 +14,9 @@ $(MODULE_NAME)-objs += 	src/cpld/pdc_cpld_master.o \
 $(MODULE_NAME)-objs += 	src/lcd/pdc_lcd_master.o \
 						src/lcd/pdc_lcd_i2c_driver.o
 
+$(MODULE_NAME)-objs += 	src/led/pdc_led_master.o \
+						src/led/pdc_led_gpio_driver.o
+
 # 添加头文件路径
 ccflags-y += 	-I$(src)/include
 

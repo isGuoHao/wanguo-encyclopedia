@@ -1,9 +1,12 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/device.h>
+#include <linux/list.h>
+
 #include "pdc.h"
 #include "pdc_cpld.h"
 #include "pdc_lcd.h"
+#include "pdc_led.h"
 
 // 定义一个私有数据结构体
 struct pdc_private_data {
@@ -23,6 +26,10 @@ static struct pdc_subdriver sub_drivers[] = {
     /* LCD master and device driver */
     { .init = pdc_lcd_master_init, .exit = pdc_lcd_master_exit },
     { .init = pdc_lcd_i2c_driver_init, .exit = pdc_lcd_i2c_driver_exit },
+
+    /* LED master and device driver */
+    { .init = pdc_led_master_init, .exit = pdc_led_master_exit },
+    { .init = pdc_led_gpio_driver_init, .exit = pdc_led_gpio_driver_exit },
     {}
 };
 
@@ -44,7 +51,7 @@ static int pdc_register_driver(struct pdc_subdriver *driver) {
 static void pdc_unregister_drivers(void) {
     struct pdc_subdriver *driver, *tmp;
 
-    list_for_each_entry_safe(driver, tmp, &pdc_private_data_instance->driver_list, list) {
+    list_for_each_entry_safe_reverse(driver, tmp, &pdc_private_data_instance->driver_list, list) {
         if (driver->exit) {
             driver->exit();
         }
