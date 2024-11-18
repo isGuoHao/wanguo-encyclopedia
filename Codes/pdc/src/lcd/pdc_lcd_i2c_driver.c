@@ -77,7 +77,7 @@ static struct i2c_driver pdc_lcd_i2c_driver = {
 int pdc_lcd_i2c_driver_init(void) {
     int ret;
 
-    printk(KERN_INFO "CPLD I2C Driver initialized\n");
+    printk(KERN_INFO "LCD I2C Driver initialized\n");
 
     ret = i2c_add_driver(&pdc_lcd_i2c_driver);
     if (ret) {

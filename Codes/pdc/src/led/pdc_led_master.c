@@ -3,12 +3,13 @@
 #include <linux/device.h>
 #include <linux/slab.h>
 #include <linux/list.h>
-#include <linux/gpio.h>
-#include <linux/pwm.h>
+#include <linux/version.h>
+
 #include "pdc.h"
 #include "pdc_led.h"
 
 static struct pdc_master *pdc_led_master;
+static struct class *pdc_led_class;
 
 int pdc_led_device_register(struct pdc_led_device *led_dev) {
     int ret;
@@ -26,7 +27,7 @@ int pdc_led_device_register(struct pdc_led_device *led_dev) {
     }
 
     // Add the device to the master's list
-    list_add_tail(&led_dev->pdc_dev->node, &pdc_led_master->devices);
+    list_add_tail(&led_dev->pdc_dev->node, &pdc_led_master->slaves);
 
     return 0;
 }
@@ -78,15 +79,41 @@ int pdc_led_master_init(void) {
 
     ret = pdc_master_alloc(&pdc_led_master, "pdc_led");
     if (ret) {
+        printk(KERN_ERR "[WANGUO] (%s:%d) Failed to allocate PDC master\n", __func__, __LINE__);
         return ret;
     }
 
-    // Initialize the list head for devices
-    INIT_LIST_HEAD(&pdc_led_master->devices);
+    INIT_LIST_HEAD(&pdc_led_master->slaves);
 
-    // Register the master
+    // Create the class for the PDC LED devices
+#if LINUX_VERSION_CODE > KERNEL_VERSION(6, 7, 0)
+    pdc_led_class = class_create("pdc_led_class");
+#else
+    pdc_led_class = class_create(THIS_MODULE, "pdc_led_class");
+#endif
+    if (IS_ERR(pdc_led_class)) {
+        ret = PTR_ERR(pdc_led_class);
+        printk(KERN_ERR "[WANGUO] (%s:%d) Failed to create class: %d\n", __func__, __LINE__, ret);
+        pdc_master_free(pdc_led_master);
+        return ret;
+    }
+
+    // Set the device name
+    ret = dev_set_name(&pdc_led_master->dev, "pdc_led");
+    if (ret) {
+        printk(KERN_ERR "[WANGUO] (%s:%d) Failed to set device name: %d\n", __func__, __LINE__, ret);
+        class_destroy(pdc_led_class);
+        pdc_master_free(pdc_led_master);
+        return ret;
+    }
+
+    pdc_led_master->dev.class = pdc_led_class;
+
+    // Register the master device
     ret = pdc_master_register(pdc_led_master);
     if (ret) {
+        printk(KERN_ERR "[WANGUO] (%s:%d) Failed to register PDC master: %d\n", __func__, __LINE__, ret);
+        class_destroy(pdc_led_class);
         pdc_master_free(pdc_led_master);
         return ret;
     }
@@ -95,14 +122,18 @@ int pdc_led_master_init(void) {
 }
 
 void pdc_led_master_exit(void) {
-    // Cleanup LED master
     printk(KERN_INFO "LED Master exited\n");
 
-    // Unregister the master
+    // Unregister the master device
     pdc_master_unregister(pdc_led_master);
+
+    // Free the master device
     pdc_master_free(pdc_led_master);
+
+    // Destroy the class
+    class_destroy(pdc_led_class);
 }
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Your Name");
+MODULE_AUTHOR("wanguo");
 MODULE_DESCRIPTION("PDC LED Master Module.");

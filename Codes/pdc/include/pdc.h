@@ -13,8 +13,8 @@ struct pdc_device {
 
 struct pdc_master {
     const char *name;
-    struct pdc_device base;
-    struct list_head devices;
+    struct device dev;
+    struct list_head slaves;
     struct list_head node;
     struct idr device_idr;
 };
