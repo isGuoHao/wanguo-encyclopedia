@@ -25,6 +25,13 @@ struct pdc_driver {
     struct device_driver driver;
 };
 
+// 定义 PDC 子驱动结构体
+struct pdc_subdriver {
+    int (*init)(void);          // 初始化函数指针
+    void (*exit)(void);         // 退出函数指针
+    struct list_head list;      // 用于链表管理
+};
+
 struct pdc_bus {
     struct bus_type bus_type;
     struct device *dev;

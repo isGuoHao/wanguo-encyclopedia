@@ -20,6 +20,7 @@ struct device_type pdc_device_type = {
     .name = "pdc_device",
 };
 
+
 static int pdc_driver_probe(struct device *dev) {
     struct pdc_device *pdc_dev = to_pdc_device(dev);
     struct pdc_driver *driver = to_pdc_driver(dev->driver);
@@ -49,6 +50,7 @@ int pdc_driver_register(struct pdc_driver *driver) {
 void pdc_driver_unregister(struct pdc_driver *driver) {
     driver_unregister(&driver->driver);
 }
+
 
 int pdc_device_alloc(struct pdc_device **device, struct pdc_master *master) {
     struct pdc_device *dev;

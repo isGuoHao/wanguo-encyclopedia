@@ -91,3 +91,6 @@ void pdc_cpld_i2c_driver_exit(void) {
     i2c_del_driver(&pdc_cpld_i2c_driver);
 }
 
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("wanguo");
+MODULE_DESCRIPTION("PDC CPLD I2C Driver.");

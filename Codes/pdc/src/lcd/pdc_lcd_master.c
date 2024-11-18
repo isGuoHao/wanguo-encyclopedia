@@ -103,4 +103,4 @@ void pdc_lcd_master_exit(void) {
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("wanguo");
-MODULE_DESCRIPTION("PDC LCD Master Module");
+MODULE_DESCRIPTION("PDC LCD Master Module.");

@@ -93,3 +93,6 @@ void pdc_lcd_i2c_driver_exit(void) {
     i2c_del_driver(&pdc_lcd_i2c_driver);
 }
 
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("wanguo");
+MODULE_DESCRIPTION("PDC LCD I2C Driver.");
