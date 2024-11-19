@@ -1,6 +1,7 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/device.h>
+
 #include <linux/slab.h>
 #include <linux/list.h>
 #include <linux/idr.h>
@@ -11,30 +12,96 @@
 
 struct pdc_bus pdc_bus_instance;
 
-struct device_type pdc_device_type = {
-    .name = "pdc_device",
-};
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 7, 0)
-static int pdc_bus_match(struct device *dev, const struct device_driver *drv) {
-#else
-static int pdc_bus_match(struct device *dev, struct device_driver *drv) {
-#endif
-    struct pdc_device *pdc_dev = to_pdc_device(dev);
-    struct pdc_driver *pdc_drv = to_pdc_driver(drv);
+static int pdc_device_uevent(const struct device *dev, struct kobj_uevent_env *env)
+{
+    const struct pdc_device *pdcdev = dev_to_pdcdev(dev);
+    const char *name = pdcdev->name;
+    int id = pdcdev->id;
+    const char *master_name = pdcdev->master ? pdcdev->master->name : "unknown";
 
-    return pdc_drv->probe(pdc_dev) == 0;
+    // 生成 MODALIAS 字符串
+    return add_uevent_var(env, "MODALIAS=pdc:master%s-id%04X-name%s", master_name, id, name);
 }
 
-struct bus_type pdc_bus_type = {
-    .name = "pdc",
-    .dev_name = "pdc_dev";
-    .match = pdc_bus_match,
+
+
+const struct device_type pdc_device_type = {
+    .name = "pdc_device",
+    //.groups = pdc_device_groups,
+    .uevent = pdc_device_uevent,
 };
 
+
+const struct pdc_device_id *pdc_match_id(const struct pdc_device_id *id, struct pdc_device *pdcdev)
+{
+	if (!(id && pdcdev))
+		return NULL;
+
+	while (id->name[0]) {
+		if (strcmp(pdcdev->name, id->name) == 0)
+			return id;
+		id++;
+	}
+	return NULL;
+}
+EXPORT_SYMBOL_GPL(pdc_match_id);
+
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
+static int pdc_device_match(struct device *dev, const struct device_driver *drv) {
+#else
+static int pdc_device_match(struct device *dev, struct device_driver *drv) {
+#endif
+	struct pdc_device *pdcdev;
+	struct pdc_driver *pdcdrv;
+
+	if (dev->type != &pdc_device_type)
+		return 0;
+
+	pdcdev = dev_to_pdcdev(dev);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
+    pdcdrv = drv_to_pdcdrv(drv);
+#else
+    pdcdrv = drv_to_pdcdrv(drv);
+#endif
+
+	if (pdc_match_id(pdcdrv->id_table, pdcdev))
+		return 1;
+
+	return 0;
+}
+
+
+static int pdc_device_probe(struct device *dev)
+{
+	struct pdc_device *pdcdev = dev_to_pdcdev(dev);
+	struct pdc_driver *driver = drv_to_pdcdrv(dev->driver);
+
+	return driver->probe(pdcdev);
+}
+
+static void pdc_device_remove(struct device *dev)
+{
+	struct pdc_device *pdcdev = dev_to_pdcdev(dev);
+	struct pdc_driver *driver = drv_to_pdcdrv(dev->driver);
+
+	if (driver->remove)
+		driver->remove(pdcdev);
+}
+
+const struct bus_type pdc_bus_type = {
+    .name = "pdc",
+    .match = pdc_device_match,
+    .probe = pdc_device_probe,      // i3c_device_probe i2c_device_remove
+    .remove = pdc_device_remove,      // i3c_device_remove i2c_device_remove
+};
+
+
 static int pdc_driver_probe(struct device *dev) {
-    struct pdc_device *pdc_dev = to_pdc_device(dev);
-    struct pdc_driver *driver = to_pdc_driver(dev->driver);
+    struct pdc_device *pdc_dev = dev_to_pdcdev(dev);
+    struct pdc_driver *driver = drv_to_pdcdrv(dev->driver);
 
     if (driver->probe)
         return driver->probe(pdc_dev);
@@ -43,8 +110,8 @@ static int pdc_driver_probe(struct device *dev) {
 }
 
 static int pdc_driver_remove(struct device *dev) {
-    struct pdc_device *pdc_dev = to_pdc_device(dev);
-    struct pdc_driver *driver = to_pdc_driver(dev->driver);
+    struct pdc_device *pdc_dev = dev_to_pdcdev(dev);
+    struct pdc_driver *driver = drv_to_pdcdrv(dev->driver);
 
     if (driver->remove)
         driver->remove(pdc_dev);

@@ -18,8 +18,11 @@ struct pdc_private_data {
 // 私有数据指针
 static struct pdc_private_data *pdc_private_data_instance;
 
+#define DEBUG_SUB_DRIVER_SWITCH 0	// 是否开启子模块初始化
+
 static struct pdc_subdriver sub_drivers[] = {
-    /* CPLD master and device driver */
+#if DEBUG_SUB_DRIVER_SWITCH
+	/* CPLD master and device driver */
     { .init = pdc_cpld_master_init, .exit = pdc_cpld_master_exit },
     { .init = pdc_cpld_i2c_driver_init, .exit = pdc_cpld_i2c_driver_exit },
 
@@ -30,6 +33,7 @@ static struct pdc_subdriver sub_drivers[] = {
     /* LED master and device driver */
     { .init = pdc_led_master_init, .exit = pdc_led_master_exit },
     { .init = pdc_led_gpio_driver_init, .exit = pdc_led_gpio_driver_exit },
+#endif
     {}
 };
 

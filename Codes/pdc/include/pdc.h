@@ -3,12 +3,26 @@
 
 #include <linux/device.h>
 #include <linux/idr.h>
+#include <linux/mod_devicetable.h>
+
+
+/*                                                                              */
+/*                                公共数据类型声明                                      */
+/*                                                                              */
+
+extern const  struct device_type pdc_device_type;
+extern const  struct bus_type pdc_bus_type;
+
+/*                                                                              */
+/*                                公共数据类型定义                                      */
+/*                                                                              */
 
 struct pdc_device {
-    struct device dev;
-    struct pdc_master *master;
-    struct list_head node;
     int id;
+    const char *name;
+    struct pdc_master *master;
+    struct device dev;
+    struct list_head node;
 };
 
 struct pdc_master {
@@ -19,17 +33,18 @@ struct pdc_master {
     struct idr device_idr;
 };
 
-struct pdc_driver {
-    int (*probe)(struct pdc_device *dev);
-    void (*remove)(struct pdc_device *dev);
-    struct device_driver driver;
+#define PDC_NAME_SIZE	20
+
+struct pdc_device_id {
+	char name[PDC_NAME_SIZE];
+	kernel_ulong_t driver_data;
 };
 
-// 定义 PDC 子驱动结构体
-struct pdc_subdriver {
-    int (*init)(void);          // 初始化函数指针
-    void (*exit)(void);         // 退出函数指针
-    struct list_head list;      // 用于链表管理
+struct pdc_driver {
+    struct device_driver driver;
+    const struct pdc_device_id *id_table;
+    int (*probe)(struct pdc_device *dev);
+    void (*remove)(struct pdc_device *dev);
 };
 
 struct pdc_bus {
@@ -38,8 +53,28 @@ struct pdc_bus {
     struct list_head masters;
 };
 
-#define to_pdc_device(d) container_of(d, struct pdc_device, dev)
-#define to_pdc_driver(d) container_of(d, struct pdc_driver, driver)
+
+/*                                                                              */
+/*                                    函数声明                                      */
+/*                                                                              */
+
+static inline struct pdc_driver *drv_to_pdcdrv(struct device_driver *drv)
+{
+	return container_of(drv, struct pdc_driver, driver);
+}
+
+struct device *pdcdev_to_dev(struct pdc_device *pdcdev);
+
+/**
+ * dev_to_pdcdev() - Returns the I3C device containing @dev
+ * @__dev: device object
+ *
+ * Return: a pointer to an PDC device object.
+ */
+#define dev_to_pdcdev(__dev)	container_of_const(__dev, struct pdc_device, dev)
+
+
+
 
 // driver
 int pdc_driver_register(struct pdc_driver *driver);
@@ -60,5 +95,19 @@ void pdc_master_unregister(struct pdc_master *master);
 // bus
 int pdc_bus_init(void);
 void pdc_bus_exit(void);
+
+
+/*                                                                              */
+/*                              私有公共数据类型定义                                      */
+/*                                                                              */
+
+// 定义 PDC 子驱动结构体
+struct pdc_subdriver {
+    int (*init)(void);          // 初始化函数指针
+    void (*exit)(void);         // 退出函数指针
+    struct list_head list;      // 用于链表管理
+};
+
+
 
 #endif /* _PDC_H_ */
