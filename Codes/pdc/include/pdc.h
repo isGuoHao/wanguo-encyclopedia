@@ -47,7 +47,10 @@ struct pdc_driver {
     void (*remove)(struct pdc_device *dev);
 };
 
+
 struct pdc_bus {
+    int id;
+
     struct bus_type bus_type;
     struct device *dev;
     struct list_head masters;
@@ -91,10 +94,6 @@ int pdc_master_alloc(struct pdc_master **master, const char *name);
 void pdc_master_free(struct pdc_master *master);
 int pdc_master_register(struct pdc_master *master);
 void pdc_master_unregister(struct pdc_master *master);
-
-// bus
-int pdc_bus_init(void);
-void pdc_bus_exit(void);
 
 
 /*                                                                              */

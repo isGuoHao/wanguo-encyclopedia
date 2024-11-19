@@ -3,7 +3,7 @@ MODULE_NAME := pdc
 obj-m := $(MODULE_NAME).o
 
 # 定义要编译的目标模块对象文件
-$(MODULE_NAME)-objs := 	src/pdc_init.o \
+$(MODULE_NAME)-objs := 	src/pdc_submodule.o \
 						src/core/pdc_core.o
 
 
